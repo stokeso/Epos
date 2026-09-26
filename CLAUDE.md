@@ -12,7 +12,7 @@ deciding silently.
 | Type-check | `npm run typecheck` |
 | Lint | `npm run lint` |
 | Unit + data tests | `npm test` (Vitest; `npx vitest run tests/rules` to scope) |
-| End-to-end | `CI=1 npx playwright test` (builds, then serves on :4173; both viewports) |
+| End-to-end | `CI=1 npx playwright test` (builds, then serves on :4173; both viewports). Parallel runs: set `PW_PORT` to a free port (e.g. `PW_PORT=4180`) |
 | All fast gates | `npm run check` |
 | Dev server | `npm run dev` |
 

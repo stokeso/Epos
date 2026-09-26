@@ -7,3 +7,4 @@ test-results
 coverage
 .DS_Store
 *.local
+dist-e2e-*
