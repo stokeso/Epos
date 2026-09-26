@@ -229,8 +229,10 @@
   white-space: nowrap;
 }
 
-.table tbody tr:not(.groupRow):hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .table tbody tr:not(.groupRow):hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .groupRow th {

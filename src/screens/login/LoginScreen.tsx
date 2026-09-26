@@ -4,12 +4,13 @@
  * a countdown (the count is shared with the override dialog). On success the draft is restored
  * (if the basket is empty) and the route guard moves on to #/pay or #/till.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LogoMark } from '../../app/AppShell';
 import { signIn } from '../../app/auth';
 import { nowMs } from '../../app/clock';
 import { FullScreenFrame } from '../../app/FullScreen';
 import { lockoutMessage, useLockoutAnnouncement, useLockoutRemaining } from '../../app/useLockout';
+import { isFocusLost } from '../../components/focus';
 import { PinKeypad } from '../../components/PinKeypad';
 import { isBasketEmpty } from '../../rules/basket';
 import { login } from '../../services/auth';
@@ -30,9 +31,14 @@ export function LoginScreen() {
   const lockoutAnnouncement = useLockoutAnnouncement(remaining);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.title = 'Log in · Club EPOS';
+    // Lock (or auto-lock) took the focused control away with the shell, and on start-up nothing
+    // has focus: start on the keypad group, as the override dialog does (D-132). Screen readers
+    // announce 'Enter your PIN', and Enter there submits the PIN typed (D-137).
+    if (isFocusLost()) rootRef.current?.querySelector<HTMLElement>('[role="group"]')?.focus({ preventScroll: true });
   }, []);
 
   const submit = async (pin: string): Promise<void> => {
@@ -56,7 +62,7 @@ export function LoginScreen() {
   const locked = remaining > 0;
   return (
     <FullScreenFrame tone="brand">
-      <div className={styles.login} data-testid="login-screen">
+      <div ref={rootRef} className={styles.login} data-testid="login-screen">
         <div className={styles.brand}>
           <LogoMark size={52} />
           <p className={styles.eyebrow}>Club EPOS</p>

@@ -55,8 +55,10 @@
   text-align: left;
 }
 
-.table tbody tr:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .table tbody tr:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .table tfoot td {

@@ -124,8 +124,10 @@
   color: var(--color-text);
 }
 
-.rowButton:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .rowButton:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .rowButton .number {

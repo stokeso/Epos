@@ -15,7 +15,7 @@ export interface TenderPanelProps {
   onQuickCash: (pence: number) => void;
   /** Cash equal to the remaining balance (D-030). */
   onExact: () => void;
-  /** Cash of the keypad amount (disabled while it is 0, D-030). */
+  /** Cash of the keypad amount (unavailable while it is 0, D-030). */
   onCash: () => void;
   /** Card of the keypad amount, or of the remaining balance when the keypad is empty (D-029). */
   onCard: () => void;
@@ -99,11 +99,15 @@ export function TenderPanel({
             {formatPence(remainingPence)}
           </span>
         </Button>
+        {/* With the keypad empty Cash is unavailable but stays focusable (aria-disabled, clicks
+            ignored): a part cash tender clears the keypad, and a natively disabled key would drop
+            the keyboard focus it just had to <body> (D-134, D-137). */}
         <Button
           size="lg"
           className={`${styles.tenderKey} ${styles.cash}`}
           onClick={onCash}
-          disabled={disabled || nothingDue || !hasAmount}
+          disabled={disabled || nothingDue}
+          aria-disabled={!hasAmount || undefined}
           aria-describedby={cashId}
         >
           <span className={styles.tenderName}>Cash</span>

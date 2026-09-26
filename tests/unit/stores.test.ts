@@ -124,6 +124,72 @@ describe('basketStore', () => {
     expect(useBasketStore.getState().view?.priced.totalPence).toBe(2 * 450 + 125);
   });
 
+  it('keeps a failed draft save visible until a save succeeds, and Try again saves it (spec §8, D-095, D-137)', async () => {
+    const h = await setupUi();
+    await openTestPeriod(h);
+    await useBasketStore.getState().addProduct(h.lager.id);
+    expect(useBasketStore.getState().draftError).toBeNull();
+
+    // The next draft write fails (e.g. storage full). Re-pricing still succeeds afterwards and
+    // must not wipe the draft error.
+    const save = vi.spyOn(h.repos.draft, 'save').mockRejectedValue(new Error('Quota exceeded'));
+    expect(await useBasketStore.getState().addProduct(h.crisps.id)).toBe(true);
+    let state = useBasketStore.getState();
+    expect(state.view?.priced.totalPence).toBe(450 + 125);
+    expect(state.error).toBeNull();
+    expect(state.draftError).toBe('Quota exceeded');
+    expect(toastMessages()).toContain('The basket could not be saved as a draft');
+    expect((await h.repos.draft.get())?.lines).toEqual([{ productId: h.lager.id, qty: 1 }]);
+
+    // A retry that fails again keeps the error.
+    expect(await useBasketStore.getState().retryDraftSave()).toBe(false);
+    expect(useBasketStore.getState().draftError).toBe('Quota exceeded');
+
+    // Try again once storage works: the stored draft catches up with the basket.
+    save.mockRestore();
+    expect(await useBasketStore.getState().retryDraftSave()).toBe(true);
+    state = useBasketStore.getState();
+    expect(state.draftError).toBeNull();
+    expect((await h.repos.draft.get())?.lines).toEqual(state.basket.lines);
+  });
+
+  it('a later successful change clears the draft error: its save covers the whole basket (D-137)', async () => {
+    const h = await setupUi();
+    await openTestPeriod(h);
+    const save = vi.spyOn(h.repos.draft, 'save').mockRejectedValueOnce(new Error('Quota exceeded'));
+    await useBasketStore.getState().addProduct(h.lager.id);
+    expect(useBasketStore.getState().draftError).toBe('Quota exceeded');
+    await useBasketStore.getState().addProduct(h.crisps.id);
+    expect(useBasketStore.getState().draftError).toBeNull();
+    expect((await h.repos.draft.get())?.lines).toEqual(useBasketStore.getState().basket.lines);
+    save.mockRestore();
+  });
+
+  it('while a payment has tenders the till shows the frozen Pay pricing, not a re-priced basket (D-011, D-033, D-137)', async () => {
+    const h = await setupUi();
+    await openTestPeriod(h);
+    await useBasketStore.getState().addProduct(h.lager.id);
+    await useBasketStore.getState().addProduct(h.lager.id);
+    await usePayStore.getState().openSale();
+    usePayStore.getState().tender({ type: 'cash', amountPence: 500 });
+    expect(isBasketFrozen(usePayStore.getState().session)).toBe(true);
+
+    // A manager changes the price in the back office mid-payment; the till mounts and re-prices.
+    await h.repos.products.update(h.lager.id, { pricePence: 600 });
+    await useBasketStore.getState().refresh();
+    let view = useBasketStore.getState().view;
+    expect(view?.priced.totalPence).toBe(900);
+    expect(view?.priced.lines.map((line) => line.unitPricePence)).toEqual([450]);
+    const session = usePayStore.getState().session;
+    expect(view?.priced).toEqual(session?.kind === 'sale' ? session.priced : undefined);
+
+    // Cancelling the payment unlocks the basket: it is priced at now again (D-009).
+    usePayStore.getState().clear();
+    await useBasketStore.getState().refresh();
+    view = useBasketStore.getState().view;
+    expect(view?.priced.totalPence).toBe(1200);
+  });
+
   it('restores the draft after a reset (as after a refresh, D-096)', async () => {
     const h = await setupUi();
     await openTestPeriod(h);

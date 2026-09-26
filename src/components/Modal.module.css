@@ -102,9 +102,11 @@
   color: var(--color-text-muted);
 }
 
-.close:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
+@media (hover: hover) {
+  .close:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
 }
 
 .description {

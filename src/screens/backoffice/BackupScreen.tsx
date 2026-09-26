@@ -9,6 +9,7 @@
 import { useId, useState, type ChangeEvent } from 'react';
 import { Banner } from '../../components/Banner';
 import { Button, ButtonLink } from '../../components/Button';
+import { keepFocusWhenRemoved } from '../../components/focus';
 import { TextField } from '../../components/FormField';
 import { Screen } from '../../components/Screen';
 import { afterBackupImport, refreshBanners } from '../../app/auth';
@@ -235,7 +236,14 @@ function ImportPanel() {
           />
           <FormError message={importer.formError} />
           <div className={backupStyles.actions}>
-            <Button onClick={reset} disabled={importer.busy}>
+            <Button
+              onClick={(event) => {
+                // Cancel clears the checked file, so the summary and this button go (D-135, D-137).
+                keepFocusWhenRemoved(event.currentTarget);
+                reset();
+              }}
+              disabled={importer.busy}
+            >
               Cancel
             </Button>
             <Button variant="danger" size="lg" onClick={() => void runImport()} disabled={!confirmed || paying} busy={importer.busy}>

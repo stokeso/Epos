@@ -69,9 +69,11 @@
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.row:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-border-strong);
+@media (hover: hover) {
+  .row:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .row:active {
@@ -240,8 +242,10 @@
   margin-bottom: var(--space-3);
 }
 
-.closedSummary:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .closedSummary:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 /* ---------------------------------------------------------------- date tile */
@@ -515,8 +519,10 @@
   cursor: pointer;
 }
 
-.choiceOption:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .choiceOption:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .choiceChecked {

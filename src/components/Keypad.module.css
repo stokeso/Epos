@@ -85,8 +85,10 @@
     transform var(--duration-fast) var(--ease-out);
 }
 
-.key:hover:not(:disabled) {
-  background: var(--key-bg-hover);
+@media (hover: hover) {
+  .key:hover:not(:disabled) {
+    background: var(--key-bg-hover);
+  }
 }
 
 .key:active:not(:disabled) {
@@ -118,8 +120,10 @@
   font-size: var(--font-size-lg);
 }
 
-.enter:hover:not(:disabled) {
-  background: var(--color-brand-900);
+@media (hover: hover) {
+  .enter:hover:not(:disabled) {
+    background: var(--color-brand-900);
+  }
 }
 
 .dark .enter {
@@ -128,8 +132,10 @@
   color: var(--color-brand-900);
 }
 
-.dark .enter:hover:not(:disabled) {
-  background: var(--color-brand-100);
+@media (hover: hover) {
+  .dark .enter:hover:not(:disabled) {
+    background: var(--color-brand-100);
+  }
 }
 
 .iconKey {
@@ -145,9 +151,11 @@
   color: var(--color-text-muted);
 }
 
-.iconKey:hover:not(:disabled) {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
+@media (hover: hover) {
+  .iconKey:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
 }
 
 .prompt {

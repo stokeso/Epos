@@ -29,8 +29,10 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.button:hover:not(:disabled, [aria-disabled='true']) {
-  background: var(--btn-bg-hover);
+@media (hover: hover) {
+  .button:hover:not(:disabled, [aria-disabled='true']) {
+    background: var(--btn-bg-hover);
+  }
 }
 
 .button:active:not(:disabled, [aria-disabled='true']) {

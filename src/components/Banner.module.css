@@ -77,9 +77,11 @@
   color: var(--color-text-muted);
 }
 
-.dismiss:hover {
-  background: rgb(0 0 0 / 0.06);
-  color: var(--color-text);
+@media (hover: hover) {
+  .dismiss:hover {
+    background: rgb(0 0 0 / 0.06);
+    color: var(--color-text);
+  }
 }
 
 @media (max-width: 599px) {

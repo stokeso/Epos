@@ -152,9 +152,11 @@
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.rowButton:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-border-strong);
+@media (hover: hover) {
+  .rowButton:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .rowButton:active {
@@ -540,8 +542,10 @@
   cursor: pointer;
 }
 
-.choice:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .choice:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .choiceSelected {

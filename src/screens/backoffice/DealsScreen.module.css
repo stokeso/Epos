@@ -193,8 +193,10 @@
   cursor: pointer;
 }
 
-.pickerItem:hover {
-  border-color: var(--color-border-strong);
+@media (hover: hover) {
+  .pickerItem:hover {
+    border-color: var(--color-border-strong);
+  }
 }
 
 .pickerItemOn {

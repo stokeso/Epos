@@ -25,8 +25,10 @@
   font-size: var(--font-size-md);
 }
 
-.input:hover:not(:disabled) {
-  border-color: var(--color-text-muted);
+@media (hover: hover) {
+  .input:hover:not(:disabled) {
+    border-color: var(--color-text-muted);
+  }
 }
 
 .input:focus-visible {

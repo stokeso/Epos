@@ -75,9 +75,11 @@
   font-size: var(--font-size-md);
 }
 
-.result:hover:not(:disabled) {
-  background: var(--color-surface-hover);
-  border-color: var(--color-border-strong);
+@media (hover: hover) {
+  .result:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .result[aria-pressed='true'] {

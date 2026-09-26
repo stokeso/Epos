@@ -118,8 +118,10 @@
   text-underline-offset: 3px;
 }
 
-.productLink:hover .productName {
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  .productLink:hover .productName {
+    text-decoration-thickness: 2px;
+  }
 }
 
 .onHandCell {

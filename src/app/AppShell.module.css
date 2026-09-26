@@ -1,8 +1,16 @@
+/*
+ * The shell is exactly the viewport and never scrolls itself: only <main> does (ui-plan §6).
+ * `position: relative` + `overflow: clip` make it the containing block that clips anything
+ * absolutely positioned inside it, so nothing can make the document taller than the viewport
+ * (a second scroll container behind the shell would carry the header away, D-137).
+ */
 .shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100dvh;
   min-height: 0;
+  overflow: clip;
 }
 
 .header {
@@ -192,7 +200,13 @@
   padding: var(--space-2) var(--page-gutter) 0;
 }
 
+/*
+ * The scroll container. `position: relative` makes it the containing block of absolutely
+ * positioned content (every .visually-hidden span, the hidden file input), so its overflow clips
+ * them; otherwise they are laid out against the page and stretch the document (D-137).
+ */
 .main {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -265,8 +279,10 @@
   color: var(--color-text-muted);
 }
 
-.navLink:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .navLink:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .navLink[aria-current='page'] {

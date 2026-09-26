@@ -666,6 +666,53 @@ test('focus never falls to <body> when the focused control goes away (D-135)', a
   await closeBasket(page);
 });
 
+test('a button that changes screen hands focus to the new screen’s heading, never <body> (D-136)', async ({ page }) => {
+  await setUpTrading(page);
+  /** 'body' when focus is lost, else the focused element's tag and text (e.g. 'h1 Pay'). */
+  const focused = () =>
+    page.evaluate(() => {
+      const active = document.activeElement;
+      if (active === null || active === document.body) return 'body';
+      return `${active.tagName.toLowerCase()} ${active.textContent?.trim() ?? ''}`;
+    });
+  const pressEnterOn = async (control: Locator): Promise<void> => {
+    await control.focus();
+    await page.keyboard.press('Enter');
+  };
+
+  // Pay (beside the basket on the tablet, in the basket bar on the phone) and back.
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await pressEnterOn(page.getByRole('button', { name: 'Pay', exact: true }));
+  await expect(page).toHaveURL(/#\/pay$/);
+  await expect.poll(focused).toBe('h1 Pay');
+  await pressEnterOn(page.getByRole('button', { name: 'Back to basket' }));
+  await expect(page).toHaveURL(/#\/till$/);
+  await expect.poll(focused).toBe('h1 Till');
+
+  if (isNarrow(page)) {
+    // The open basket sheet's own Pay: the sheet closes as the till goes.
+    const sheet = await openBasket(page);
+    await pressEnterOn(sheet.getByRole('button', { name: /^Pay £/ }));
+    await expect(page).toHaveURL(/#\/pay$/);
+    await expect.poll(focused).toBe('h1 Pay');
+    await pressEnterOn(page.getByRole('button', { name: 'Back to basket' }));
+    await expect(page).toHaveURL(/#\/till$/);
+  }
+
+  // A link inside a lazily loaded screen, and a dialog whose button changes screen.
+  await navigate(page, 'Bookings');
+  await expect(page.getByRole('button', { name: 'Menu', exact: true })).toBeFocused();
+  await pressEnterOn(page.getByRole('link', { name: 'Seniors Society Day' }));
+  await expect(page).toHaveURL(/#\/bookings\/.+/);
+  await expect.poll(focused).toBe('h1 Seniors Society Day');
+  await page.getByRole('button', { name: 'Take deposit' }).click();
+  const deposit = page.getByRole('dialog', { name: 'Take deposit' });
+  await enterMoney(deposit, 1000);
+  await pressEnterOn(deposit.getByRole('button', { name: 'Continue to Pay' }));
+  await expect(page).toHaveURL(/#\/pay$/);
+  await expect.poll(focused).toBe('h1 Pay');
+});
+
 test('forced colours (Windows High Contrast) keep product edges, the selected category and the selected line visible (D-135)', async ({ page }) => {
   test.skip(isNarrow(page), 'Basket lines are selectable in the tablet layout');
   await setUpTrading(page);

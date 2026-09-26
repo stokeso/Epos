@@ -61,7 +61,7 @@ function newId(): string {
 /** Resets every store to its initial state (the app store is left unbooted). */
 export function resetStores(): void {
   resetAppStoreForTests();
-  useBasketStore.setState({ basket: EMPTY_BASKET, view: null, pricing: false, error: null });
+  useBasketStore.setState({ basket: EMPTY_BASKET, view: null, pricing: false, error: null, draftError: null });
   usePayStore.setState({ session: null, opening: false, keypadPence: 0, committing: false, error: null });
   useSessionStore.setState({
     session: null,

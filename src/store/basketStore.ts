@@ -18,6 +18,12 @@
  * comes, so a void that awaits its audit write never overwrites a product tapped meanwhile, and
  * two quick voids each remove their own unit (D-085, D-130). Only the basket update is
  * serialised; the draft save and re-pricing that follow run as before.
+ *
+ * D-137:
+ * - while a sale Pay session has tenders (the basket is locked), `view.priced` is that session's
+ *   frozen pricing, so the till never shows a total other than the one being charged;
+ * - a failed draft save is kept in `draftError` (pricing never clears it) until a later save of
+ *   the basket succeeds: the next change, or retryDraftSave ('Try again').
  */
 import { create } from 'zustand';
 import { isAppError } from '../data/errors';
@@ -28,21 +34,31 @@ import { restoreDraft as restoreDraftService, saveDraft } from '../services/draf
 import type { Authorisation } from '../services/override';
 import { viewBasket, voidLine as voidLineService, type BasketView } from '../services/till';
 import { getCtx, useAppStore } from './appStore';
-import { usePayStore } from './payStore';
+import { isBasketFrozen, usePayStore } from './payStore';
 import { toast } from './uiStore';
 
 export const NO_PERIOD_MESSAGE = 'No trading period open';
 export const PAYMENT_IN_PROGRESS_MESSAGE = 'Finish or cancel the payment first';
 export const MAX_QTY_MESSAGE = `Maximum quantity is ${MAX_LINE_QTY}`;
+export const DRAFT_SAVE_FAILED_MESSAGE = 'The basket could not be saved as a draft';
 
 export interface BasketStoreState {
   basket: BasketState;
-  /** viewBasket(basket) for the latest basket (null until first priced, and for an empty basket). */
+  /**
+   * viewBasket(basket) for the latest basket (null until first priced, and for an empty basket).
+   * While a sale payment has tenders, `priced` is the Pay session's frozen pricing (D-033, D-137).
+   */
   view: BasketView | null;
   /** True while viewBasket is running. */
   pricing: boolean;
-  /** The last pricing/draft error message, if any. */
+  /** The last pricing error message, if any (cleared by the next successful pricing). */
   error: string | null;
+  /**
+   * Set when the draft could not be saved: the stored draft is behind the basket, so a reload
+   * would restore an older basket (spec §8, D-095). Cleared only when a save of the basket
+   * succeeds (the next change, or retryDraftSave), never by re-pricing (D-137).
+   */
+  draftError: string | null;
 
   /** Tap a product (D-008). false when blocked (no period, payment in progress, qty 999). */
   addProduct(productId: string): Promise<boolean>;
@@ -69,13 +85,28 @@ export interface BasketStoreState {
   restoreDraft(): Promise<number>;
   /** Re-price without a change (e.g. the Till screen mounting after a price edit). */
   refresh(): Promise<void>;
+  /** Saves the draft of the current basket again ('Try again' after a failed save). true when saved. */
+  retryDraftSave(): Promise<boolean>;
 }
 
 let pricingSeq = 0;
+/** Numbers draft saves, so only the latest save's outcome sets or clears draftError. */
+let draftSeq = 0;
 
 function describe(error: unknown): string {
   if (isAppError(error)) return error.message;
   return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * What the till shows: while a sale payment has tenders, the basket is locked and the customer is
+ * being charged the Pay session's frozen pricing (D-011, D-033), so that is the pricing shown,
+ * whatever has changed since (a price, a deal, the member discount %). D-137.
+ */
+function withFrozenPricing(view: BasketView): BasketView {
+  const session = usePayStore.getState().session;
+  if (!isBasketFrozen(session) || session?.kind !== 'sale') return view;
+  return { ...view, priced: session.priced };
 }
 
 /** Guard for a basket change: payment lock (D-033). Returns false when the change must not happen. */
@@ -127,17 +158,32 @@ export const useBasketStore = create<BasketStoreState>()((set, get) => {
     set({ pricing: true });
     try {
       const view = await viewBasket(getCtx(), basket);
-      if (seq === pricingSeq) set({ view, pricing: false, error: null });
+      if (seq === pricingSeq) set({ view: withFrozenPricing(view), pricing: false, error: null });
     } catch (error) {
       if (seq === pricingSeq) set({ pricing: false, error: describe(error) });
     }
   }
 
+  /**
+   * Saves `basket` as the draft. The latest save decides draftError: a failure sets it, a success
+   * clears it (that save holds the whole basket, so the stored draft has caught up). true when saved.
+   */
+  async function storeDraft(basket: BasketState): Promise<boolean> {
+    const seq = ++draftSeq;
+    try {
+      await saveDraft(getCtx(), basket);
+      if (seq === draftSeq) set({ draftError: null });
+      return true;
+    } catch (error) {
+      if (seq === draftSeq) set({ draftError: describe(error) });
+      return false;
+    }
+  }
+
   /** Saves the draft and re-prices `basket` (every change, D-095). */
   async function persist(basket: BasketState): Promise<void> {
-    const draft = saveDraft(getCtx(), basket).catch((error: unknown) => {
-      set({ error: describe(error) });
-      toast('The basket could not be saved as a draft', { tone: 'danger' });
+    const draft = storeDraft(basket).then((saved) => {
+      if (!saved) toast(DRAFT_SAVE_FAILED_MESSAGE, { tone: 'danger' });
     });
     await Promise.all([draft, reprice(basket)]);
   }
@@ -161,6 +207,7 @@ export const useBasketStore = create<BasketStoreState>()((set, get) => {
     view: null,
     pricing: false,
     error: null,
+    draftError: null,
 
     async addProduct(productId) {
       if (!passPeriodGuard() || !passPaymentGuard()) return false;
@@ -210,7 +257,8 @@ export const useBasketStore = create<BasketStoreState>()((set, get) => {
 
     reset() {
       pricingSeq += 1;
-      set({ basket: EMPTY_BASKET, view: null, pricing: false, error: null });
+      draftSeq += 1;
+      set({ basket: EMPTY_BASKET, view: null, pricing: false, error: null, draftError: null });
     },
 
     async restoreDraft() {
@@ -226,6 +274,12 @@ export const useBasketStore = create<BasketStoreState>()((set, get) => {
 
     async refresh() {
       await reprice(get().basket);
+    },
+
+    async retryDraftSave() {
+      // Read the basket in turn, after any change still being made (D-130).
+      const basket = await runBasketExclusive(() => get().basket);
+      return storeDraft(basket);
     },
   };
 });

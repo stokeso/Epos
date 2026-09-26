@@ -310,8 +310,10 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.stepButton:hover:not(:disabled) {
-  background: var(--color-brand-100);
+@media (hover: hover) {
+  .stepButton:hover:not(:disabled) {
+    background: var(--color-brand-100);
+  }
 }
 
 .stepButton:active:not(:disabled) {

@@ -48,8 +48,10 @@
   border-radius: 0 var(--radius) var(--radius) 0;
 }
 
-.option:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .option:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 /* The native radio stays in the page for keyboards and screen readers; the label is the target. */
@@ -82,8 +84,10 @@
   color: var(--color-on-brand);
 }
 
-.checked:hover {
-  background: var(--color-brand-900);
+@media (hover: hover) {
+  .checked:hover {
+    background: var(--color-brand-900);
+  }
 }
 
 .group:disabled .option {

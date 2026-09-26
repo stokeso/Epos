@@ -40,6 +40,11 @@
   font-size: var(--font-size-xl);
 }
 
+/* Takes focus from script only, after a route change (D-136), like <main> and the basket: no ring. */
+.title:focus {
+  outline: none;
+}
+
 .description {
   color: var(--color-text-muted);
 }

@@ -58,9 +58,11 @@
     transform var(--duration-fast) var(--ease-out);
 }
 
-.card:hover {
-  border-color: var(--color-brand-700);
-  box-shadow: var(--shadow-md);
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--color-brand-700);
+    box-shadow: var(--shadow-md);
+  }
 }
 
 .card:active {
@@ -123,6 +125,8 @@
   color: var(--color-text-muted);
 }
 
-.card:hover .chevron {
-  color: var(--color-brand-800);
+@media (hover: hover) {
+  .card:hover .chevron {
+    color: var(--color-brand-800);
+  }
 }

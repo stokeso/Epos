@@ -108,7 +108,7 @@ Mounted once by the root; you never render it. `openDocument()` shows it when th
 `caption` (accessible name), `hideCaption?`, `columns: { key, header, render(row), align?, numeric?, rowHeader?, width? }[]`, `rows`, `getRowKey`, `emptyMessage?`, `footer?` (totals row keyed by column key), `rowClassName?`, `testId?`, `dense?`, `className?` (on the scrolling region). Scrolls sideways inside its own focusable region, with an edge shadow on the side that has more to scroll to.
 
 ### Screen
-`title` (the page `<h1>` and `document.title`), `hideTitle?`, `description?`, `actions?` (title-row buttons), `children`, `width?: 'narrow' | 'default' | 'full'` (640 px forms / 1120 px / edge to edge for the till). One per screen.
+`title` (the page `<h1>` and `document.title`), `hideTitle?`, `description?`, `actions?` (title-row buttons), `children`, `width?: 'narrow' | 'default' | 'full'` (640 px forms / 1120 px / edge to edge for the till). One per screen. When it mounts with focus lost (on `<body>` or `<main>`, e.g. after the button that changed the route went with the old screen), its `<h1>` (`tabindex="-1"`) takes focus (D-136).
 
 ### Hooks and helpers
 `useIsWide()` (≥ 900 px: side basket panel), `useMediaQuery(query)`, `useDebouncedValue(value, ms?)`, `readableTextColour(hex)`, `contrastRatio(a, b)`, `safeColour(hex)`, `categoryTabId(panelId, id)`, `keepFocusWhenRemoved(control)` (call in a click handler that may remove its own button: focus then goes to the nearest `tabindex="-1"` container or `<main>`, not `<body>`, D-135; Banner's dismiss and BasketPanel's remove buttons already do).
@@ -129,8 +129,8 @@ Helpers: `getCtx()`, `useCtx()`, `useHasOpenPeriod()`.
 State: `session: Session | null` (`{ staffId, name, role }`), `pinAttempts` (shared login/override lockout, D-076), `lastActivityMs`, `banners: { backupDue, storageWarning }`, `dismissed`.
 Actions: `start(session, nowMs)`, `end()`, `touch(nowMs)`, `pinFailed(nowMs)`, `pinSucceeded()`, `lockoutRemaining(nowMs)`, `setBanners(partial)`, `dismissBanner(key)`. Use `signIn` / `lock` (§5.4) rather than `start` / `end` directly. Hook: `useSession()`.
 
-### basketStore (D-008, D-033, D-068, D-085, D-095, D-096)
-State: `basket: BasketState` (`{ lines: {productId, qty}[], memberId?, bookingId?, tabId? }`), `view: BasketView | null` (exactly `services/till.viewBasket`), `pricing`, `error`.
+### basketStore (D-008, D-033, D-068, D-085, D-095, D-096, D-137)
+State: `basket: BasketState` (`{ lines: {productId, qty}[], memberId?, bookingId?, tabId? }`), `view: BasketView | null` (exactly `services/till.viewBasket`; while a sale payment has tenders its `priced` is the Pay session's frozen pricing, D-137), `pricing`, `error` (pricing only), `draftError` (the last draft save failed; cleared only by a successful save, D-137).
 Actions (every change saves the draft and re-prices):
 - `addProduct(productId): Promise<boolean>` — false (with a toast) when no period is open (`No trading period open`), a sale payment has tenders (`Finish or cancel the payment first`) or the line is at 999 (`Maximum quantity is 999`).
 - `voidLine(auth, productId, qty)` — `auth` from `requirePermission('voidLine')`; the basket changes only after the void audit event commits; throws the service's `AppError`.
@@ -138,6 +138,7 @@ Actions (every change saves the draft and re-prices):
 - `load(basket)` — put the result of a tab service (`loadTab`, `openNewTab`, `addBasketToTab`, `parkTab`) into the store.
 - `reset()` — after a sale commit (payStore does it for you).
 - `restoreDraft(): Promise<number>` — used by `signIn`.
+- `retryDraftSave(): Promise<boolean>` — saves the current basket as the draft again (the till's Try again on "The basket could not be saved.").
 - `refresh()` — re-price with no change (call when the Till mounts, after price or settings edits).
 Guard: a sale Pay session with **no** tenders is dropped when the basket changes (its frozen pricing is stale, D-011); with tenders the basket is frozen (D-033), and so it is while Pay is opening (D-130). Changes run one at a time: each reads the basket when its turn comes (`runBasketExclusive`, D-130). Helpers: `basketUnitCount(basket)`, messages `NO_PERIOD_MESSAGE`, `PAYMENT_IN_PROGRESS_MESSAGE`, `MAX_QTY_MESSAGE`.
 
@@ -198,7 +199,7 @@ Mounted once by the root. `pointerdown`/`keydown` (capture) record activity; a 1
 - **Type**: system font stack only (offline; no web fonts/CDNs). Sizes `--font-size-xs … -3xl`. Money: `MoneyText` (or the global `.money` / `.tabular` class) for tabular numerals.
 - **Touch**: every control ≥ 48 × 48 px (`--touch-min`); primary actions 56 px (`--touch-lg`); Pay / Complete sale 72 px (`--touch-xl`, `Button size="xl"`); product buttons ≥ 88 px (`--product-min-height`); list rows ≥ 56 px.
 - **Breakpoints**: `≥ 900 px` wide = landscape tablet → the till shows the **side basket panel** (`--basket-panel-width` 380 px); `< 900 px` → **BottomSheet**. `useIsWide()` in code, `@media (min-width: 900px)` in CSS. `< 600 px` = phone tweaks (modal footers share width, header icon buttons). Test at 1280 × 800 and 390 × 844.
-- **Layout**: the shell is exactly `100dvh`; the header and banners are fixed height; `<main id="main">` is the scroll container and is scrolled to the top on every route change (D-135). Normal screens use `<Screen>` and scroll inside main. The till uses `<Screen width="full">` and should fill main (`flex: 1; min-height: 0`) with its own inner scroll areas (product grid, basket lines).
+- **Layout**: the shell is exactly `100dvh`; the header and banners are fixed height; `<main id="main">` is the scroll container and is scrolled to the top on every route change (D-135). `<main>` is `position: relative` and the shell clips (`overflow: clip`), so absolutely positioned content (`.visually-hidden`) can never make the document itself scroll (D-137). Normal screens use `<Screen>` and scroll inside main. The till uses `<Screen width="full">` and should fill main (`flex: 1; min-height: 0`) with its own inner scroll areas (product grid, basket lines).
 - **No horizontal page scroll at 390 px**: long content scrolls inside its own element (DataTable, CategoryTabs). `expectNoHorizontalScroll(page)` checks it.
 - **Colour**: category/product colours come from data — always pair with `readableTextColour`. Deductions use `MoneyText asDeduction`.
 - **Focus**: `:focus-visible` outline `--focus-ring` (blue on light, amber `#fcd34d` on the green header/login). Never remove outlines.

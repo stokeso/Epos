@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { isFocusLost } from './focus';
 import styles from './Screen.module.css';
 
 export interface ScreenProps {
@@ -21,14 +22,25 @@ export interface ScreenProps {
  * Every screen renders exactly one Screen (one <h1>).
  */
 export function Screen({ title, hideTitle = false, description, actions, children, width = 'default', className }: ScreenProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     document.title = `${title} · Club EPOS`;
   }, [title]);
+  // A control inside the last screen that changed the route (Pay, Back to basket, a booking link,
+  // a dialog's Continue to Pay) went with that screen, so focus fell to <body>, or to <main> when a
+  // dialog closed with it. Move focus to this screen's heading: keyboard users keep their place and
+  // screen readers announce the new screen (D-136). Focus that is still somewhere (the header's
+  // Menu button after the menu, a field with autoFocus, a screen's own initial focus) is left alone.
+  useEffect(() => {
+    if (isFocusLost() || document.activeElement === document.getElementById('main')) headingRef.current?.focus({ preventScroll: true });
+  }, []);
   return (
     <div className={`${styles.screen} ${styles[width] ?? ''} ${className ?? ''}`}>
       <div className={hideTitle ? 'visually-hidden' : styles.titleRow}>
         <div className={styles.titleText}>
-          <h1 className={styles.title}>{title}</h1>
+          <h1 ref={headingRef} className={styles.title} tabIndex={-1}>
+            {title}
+          </h1>
           {description !== undefined && <div className={styles.description}>{description}</div>}
         </div>
         {actions !== undefined && !hideTitle && <div className={styles.actions}>{actions}</div>}

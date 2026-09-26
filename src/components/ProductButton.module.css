@@ -21,8 +21,10 @@
     filter var(--duration-fast) var(--ease-out);
 }
 
-.button:hover:not(:disabled) {
-  filter: brightness(1.07);
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    filter: brightness(1.07);
+  }
 }
 
 .button:active:not(:disabled) {

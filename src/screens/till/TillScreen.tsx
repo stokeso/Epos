@@ -9,6 +9,8 @@
  *
  * Every basket change goes through basketStore (viewBasket + saveDraft); every figure shown is
  * what the services return. Permission-gated actions use requirePermission (D-070).
+ * While a payment has tenders the basket shows the Pay session's frozen pricing and discount %;
+ * a failed draft save stays on screen with Try again; each product added is announced (D-137).
  */
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -54,6 +56,7 @@ export function TillScreen() {
   const view = useBasketStore((s) => s.view);
   const pricing = useBasketStore((s) => s.pricing);
   const basketError = useBasketStore((s) => s.error);
+  const draftError = useBasketStore((s) => s.draftError);
   const paySession = usePayStore((s) => s.session);
   const discountPercent = useAppStore((s) => s.settings?.memberDiscountPercent);
   const catalogue = useLoad(loadTillCatalogue, []);
@@ -63,6 +66,8 @@ export function TillScreen() {
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'pay' | 'noSale' | null>(null);
+  /** Polite status text: what was just added and the basket's new count and total (WCAG 4.1.3). */
+  const [announcement, setAnnouncement] = useState('');
 
   useEffect(() => {
     // Back on the till with a sale payment that took no tenders: its frozen pricing is stale
@@ -79,6 +84,8 @@ export function TillScreen() {
   const selected = selectedLine !== null && basket.lines.some((l) => l.productId === selectedLine) ? selectedLine : null;
   const unitCount = basketUnitCount(basket);
   const totalPence = view?.priced.totalPence ?? 0;
+  // The % the frozen pricing used while the basket is locked, never a live setting beside it (D-135, D-137).
+  const shownDiscountPercent = frozen && paySession?.kind === 'sale' ? (paySession.memberDiscountPercent ?? undefined) : discountPercent;
 
   /** Shows a service error inline (the basket is never touched by a failed action). */
   const fail = (caught: unknown): void => {
@@ -94,7 +101,18 @@ export function TillScreen() {
 
   const addOne = (productId: string): void => {
     setActionError(null);
-    void useBasketStore.getState().addProduct(productId);
+    void useBasketStore
+      .getState()
+      .addProduct(productId)
+      .then((added) => {
+        if (!added) return;
+        // Figures are the store's (viewBasket), read once the add has been priced.
+        const state = useBasketStore.getState();
+        const name = state.view?.priced.lines.find((line) => line.productId === productId)?.name;
+        const units = basketUnitCount(state.basket);
+        const total = state.view === null ? '' : `, ${formatPence(state.view.priced.totalPence)}`;
+        setAnnouncement(`${name ?? 'Item'} added. ${units} ${units === 1 ? 'item' : 'items'}${total}.`);
+      });
   };
 
   /** '−' on a basket line: a void of one unit (D-085), so it needs 'voidLine' (supervisor+). */
@@ -160,6 +178,11 @@ export function TillScreen() {
 
   const payDisabled = !hasPeriod || !hasLines || paymentInProgress;
 
+  /** Saves the draft again; the banner goes once it is saved (D-137). */
+  const retryDraft = async (): Promise<void> => {
+    if (await useBasketStore.getState().retryDraftSave()) toast('Basket saved', { tone: 'success' });
+  };
+
   const notices = (
     <>
       {paymentInProgress && (
@@ -193,15 +216,45 @@ export function TillScreen() {
           {basketError}
         </Banner>
       )}
+      {draftError !== null && (
+        <Banner
+          tone="danger"
+          title="The basket could not be saved."
+          testId="draft-error"
+          action={
+            <Button
+              size="sm"
+              onClick={(event) => {
+                // Once the draft is saved the banner, and this button, go (D-135).
+                keepFocusWhenRemoved(event.currentTarget);
+                void retryDraft();
+              }}
+            >
+              Try again
+            </Button>
+          }
+        >
+          If this page is reloaded now, the latest changes to the basket will be lost. {draftError}
+        </Banner>
+      )}
     </>
   );
-  const hasNotices = paymentInProgress || actionError !== null || basketError !== null;
+  const hasNotices = paymentInProgress || actionError !== null || basketError !== null || draftError !== null;
+
+  // One polite live region, inside the open basket sheet on a phone (the rest of the app is inert
+  // behind a modal, so a region outside it would not be read out).
+  const announcer = (
+    <p role="status" className="visually-hidden" data-testid="till-announcement">
+      {announcement}
+    </p>
+  );
+  const sheetShown = sheetOpen && !wide;
 
   const panel = (
     <BasketPanel
       view={view}
       basket={basket}
-      memberDiscountPercent={discountPercent}
+      memberDiscountPercent={shownDiscountPercent}
       selectedProductId={selected}
       onSelectLine={wide && canSell ? (id) => setSelectedLine((current) => (current === id ? null : id)) : undefined}
       lineTrailing={canSell ? (line) => <LineStepper line={line} onAdd={addOne} onVoid={(l) => void voidOne(l)} /> : undefined}
@@ -223,9 +276,10 @@ export function TillScreen() {
 
   return (
     <Screen title="Till" hideTitle width="full">
+      {!sheetShown && announcer}
       <div className={`${styles.till} ${wide ? styles.wide : styles.narrow}`}>
         <div className={styles.main}>
-          {hasNotices && !(sheetOpen && !wide) && <div className={styles.notices}>{notices}</div>}
+          {hasNotices && !sheetShown && <div className={styles.notices}>{notices}</div>}
           {hasPeriod ? (
             <ProductArea catalogue={catalogue} basket={basket} disabled={!canSell} onAdd={addOne} />
           ) : (
@@ -268,6 +322,7 @@ export function TillScreen() {
               </Button>
             }
           >
+            {sheetShown && announcer}
             {hasNotices && <div className={styles.sheetNotices}>{notices}</div>}
             {panel}
           </BottomSheet>

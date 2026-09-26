@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { errorMessage, OpenPeriodDialog, requirePermission, useLoad } from '../../app';
-import { Banner, Button, ButtonLink, MoneyText, Screen } from '../../components';
+import { Banner, Button, ButtonLink, keepFocusWhenRemoved, MoneyText, Screen } from '../../components';
 import type { Booking, LocalDate } from '../../data/types';
 import { BOOKING_TYPE_LABELS } from '../../rules/booking';
 import { formatPence } from '../../rules/money';
@@ -107,7 +107,8 @@ function BookingDetail({
   /** True when the Pay session is a deposit for this booking. */
   const isThisDeposit = (session: PaySession): boolean => session.kind === 'deposit' && session.booking.id === booking.id;
 
-  const close = async (kind: 'settle' | 'cancel'): Promise<void> => {
+  /** `control` is the pressed button: it goes with the 'Close this booking' card once the booking closes. */
+  const close = async (kind: 'settle' | 'cancel', control: HTMLElement): Promise<void> => {
     if (busy !== null) return;
     setError(null);
     const pay = usePayStore.getState().session;
@@ -134,6 +135,9 @@ function BookingDetail({
     if (!confirmed) return;
     const auth = await requirePermission('bookings');
     if (auth === null) return;
+    // The confirm (and any PIN override) gave focus back to the pressed button. When the booking
+    // closes, the card with it goes: focus then moves to <main>, not <body> (D-135, D-137).
+    keepFocusWhenRemoved(control);
     setBusy(kind);
     try {
       if (kind === 'settle') await settleBooking(getCtx(), auth, booking.id);
@@ -281,7 +285,7 @@ function BookingDetail({
             <div className={styles.closeActions}>
               <Button
                 variant="secondary"
-                onClick={() => void close('settle')}
+                onClick={(event) => void close('settle', event.currentTarget)}
                 disabled={!summary.canSettle || depositInProgress || busy !== null}
                 busy={busy === 'settle'}
               >
@@ -289,7 +293,7 @@ function BookingDetail({
               </Button>
               <Button
                 variant="dangerOutline"
-                onClick={() => void close('cancel')}
+                onClick={(event) => void close('cancel', event.currentTarget)}
                 disabled={!summary.canCancel || depositInProgress || busy !== null}
                 busy={busy === 'cancel'}
               >

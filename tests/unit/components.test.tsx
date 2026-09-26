@@ -24,6 +24,7 @@ import { NumericKeypad } from '../../src/components/NumericKeypad';
 import { PinKeypad } from '../../src/components/PinKeypad';
 import { ProductButton } from '../../src/components/ProductButton';
 import { ReceiptFallbackPanel } from '../../src/components/ReceiptFallbackPanel';
+import { Screen } from '../../src/components/Screen';
 import { SearchList } from '../../src/components/SearchList';
 import type { Member, Settings } from '../../src/data/types';
 import { priceBasket } from '../../src/rules/pricing';
@@ -373,6 +374,67 @@ describe('keepFocusWhenRemoved (D-135)', () => {
     await Promise.resolve();
     expect(document.activeElement).toBe(other);
     other.remove();
+  });
+});
+
+describe('Screen focus after a route change (D-136)', () => {
+  /** Stands in for the router: the old screen (with the focused button) unmounts and the new one mounts. */
+  function RouteHarness({ other }: { other?: HTMLElement }) {
+    const [route, setRoute] = useState<'till' | 'pay'>('till');
+    return (
+      <main id="main" tabIndex={-1}>
+        {route === 'till' ? (
+          <Screen key="till" title="Till" hideTitle>
+            <button
+              type="button"
+              onClick={() => {
+                other?.focus();
+                setRoute('pay');
+              }}
+            >
+              Pay
+            </button>
+          </Screen>
+        ) : (
+          <Screen key="pay" title="Pay">
+            <p>Amount due</p>
+          </Screen>
+        )}
+      </main>
+    );
+  }
+
+  it('moves focus to the new screen’s heading when the button that changed screen went with the old one', async () => {
+    render(<RouteHarness />);
+    const pay = screen.getByRole('button', { name: 'Pay' });
+    pay.focus();
+    fireEvent.click(pay);
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Pay' });
+    await waitFor(() => expect(document.activeElement).toBe(heading));
+    expect(heading.getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('also takes focus from <main>, where a dialog that closed with the old screen leaves it', async () => {
+    const main = document.createElement('main');
+    main.id = 'main';
+    main.tabIndex = -1;
+    document.body.append(main);
+    main.focus();
+    render(<Screen title="Pay" />, { container: main });
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Pay' })));
+    main.remove();
+  });
+
+  it('leaves focus alone when something still has it (the header Menu button after the menu)', async () => {
+    const menu = document.createElement('button');
+    menu.textContent = 'Menu';
+    document.body.append(menu);
+    render(<RouteHarness other={menu} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Pay' }));
+    await screen.findByRole('heading', { level: 1, name: 'Pay' });
+    await Promise.resolve();
+    expect(document.activeElement).toBe(menu);
+    menu.remove();
   });
 });
 

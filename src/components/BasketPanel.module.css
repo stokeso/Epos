@@ -118,9 +118,11 @@
   inset: -4px;
 }
 
-.badgeRemove:hover:not(:disabled) {
-  background: rgb(0 0 0 / 0.07);
-  color: var(--color-text);
+@media (hover: hover) {
+  .badgeRemove:hover:not(:disabled) {
+    background: rgb(0 0 0 / 0.07);
+    color: var(--color-text);
+  }
 }
 
 .scroll {
@@ -173,8 +175,10 @@
   border-radius: var(--radius-sm);
 }
 
-.lineButton:hover:not(:disabled) {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .lineButton:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+  }
 }
 
 .qty {

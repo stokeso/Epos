@@ -33,8 +33,10 @@
   text-align: left;
 }
 
-.toggle:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .toggle:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .chevron {

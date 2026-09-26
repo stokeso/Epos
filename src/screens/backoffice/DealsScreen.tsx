@@ -61,6 +61,8 @@ export function DealsScreen() {
   const load = useLoad(loadData, []);
   const [editing, setEditing] = useState<Deal | 'new' | null>(null);
   const toggleForm = useGatedForm();
+  /** The deal whose Deactivate / Reactivate is saving: that button shows busy and keeps focus (D-134). */
+  const [toggling, setToggling] = useState<string | null>(null);
   const data = load.data;
 
   const nameOf = (id: string): string | undefined => data?.products.find((p) => p.id === id)?.name;
@@ -73,8 +75,14 @@ export function DealsScreen() {
   };
 
   const toggle = async (deal: Deal): Promise<void> => {
-    const saved = await toggleForm.run('editCatalogue', (auth) => setDealActive(getCtx(), auth, deal.id, !deal.active));
-    if (saved !== null) afterChange(saved.active ? `${saved.name} reactivated` : `${saved.name} deactivated`);
+    if (toggleForm.busy) return;
+    setToggling(deal.id);
+    try {
+      const saved = await toggleForm.run('editCatalogue', (auth) => setDealActive(getCtx(), auth, deal.id, !deal.active));
+      if (saved !== null) afterChange(saved.active ? `${saved.name} reactivated` : `${saved.name} deactivated`);
+    } finally {
+      setToggling(null);
+    }
   };
 
   return (
@@ -126,11 +134,14 @@ export function DealsScreen() {
                   <Button onClick={() => setEditing(deal)} aria-label={`Edit ${deal.name}`} disabled={toggleForm.busy}>
                     Edit
                   </Button>
+                  {/* The pressed toggle is busy (aria-disabled), not natively disabled, so it keeps
+                      keyboard focus while it saves and afterwards, with its new label (D-134). */}
                   <Button
                     variant={deal.active ? 'dangerOutline' : 'secondary'}
                     onClick={() => void toggle(deal)}
                     aria-label={`${deal.active ? 'Deactivate' : 'Reactivate'} ${deal.name}`}
                     disabled={toggleForm.busy}
+                    busy={toggling === deal.id}
                   >
                     {deal.active ? 'Deactivate' : 'Reactivate'}
                   </Button>

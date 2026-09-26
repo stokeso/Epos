@@ -182,9 +182,11 @@
   touch-action: manipulation;
 }
 
-.stepButton:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-border-strong);
+@media (hover: hover) {
+  .stepButton:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .stepButton:active {

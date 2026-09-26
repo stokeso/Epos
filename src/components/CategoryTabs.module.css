@@ -29,8 +29,10 @@
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.tab:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .tab:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .swatch {

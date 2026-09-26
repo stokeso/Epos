@@ -160,8 +160,10 @@
   display: none;
 }
 
-.summary:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) {
+  .summary:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .summaryText {
