@@ -635,3 +635,41 @@ test('keyboard focus: Add product goes busy without losing focus, and focus retu
   await expect(addDialog).toBeHidden();
   await expect(add).toBeFocused();
 });
+
+/** 'body' when focus is lost, else the focused element's tag, id and text (e.g. 'main#main'). */
+function focusedElement(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const active = document.activeElement;
+    if (active === null || active === document.body) return 'body';
+    return `${active.tagName.toLowerCase()}${active.id === '' ? '' : `#${active.id}`}`;
+  });
+}
+
+test('keyboard focus: a deal’s Deactivate / Reactivate keeps focus while it saves and after (D-134, D-137)', async ({ page }) => {
+  await openSection(page, 'Deals', /#\/backoffice\/deals$/);
+  const deactivate = page.getByRole('button', { name: 'Deactivate Any 2 bottles for £8', exact: true });
+  await deactivate.focus();
+  await page.keyboard.press('Enter');
+  const reactivate = page.getByRole('button', { name: 'Reactivate Any 2 bottles for £8', exact: true });
+  await expect(reactivate).toBeVisible();
+  await expect(toast(page, 'Any 2 bottles for £8 deactivated')).toBeVisible();
+  await expect(reactivate).toBeFocused();
+  // And back, from the keyboard again.
+  await page.keyboard.press('Enter');
+  await expect(deactivate).toBeVisible();
+  await expect(deactivate).toBeFocused();
+  const deals = await readStore<Deal>(page, 'deals');
+  expect(deals.find((d) => d.name === 'Any 2 bottles for £8')?.active).toBe(true);
+});
+
+test('keyboard focus: Cancel on a checked backup file removes itself and focus stays on the page (D-135, D-137)', async ({ page }) => {
+  await openSection(page, 'Backup', /#\/backoffice\/backup$/);
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export backup' }).click()]);
+  await page.getByLabel('Choose backup file').setInputFiles(await download.path());
+  const summary = page.getByTestId('backup-summary');
+  await expect(summary).toContainText('It is a valid Club EPOS backup.');
+  await summary.getByRole('button', { name: 'Cancel', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(summary).toHaveCount(0);
+  await expect.poll(() => focusedElement(page)).toBe('main#main');
+});

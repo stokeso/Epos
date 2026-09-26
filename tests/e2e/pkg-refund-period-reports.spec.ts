@@ -682,3 +682,16 @@ test('money keypad dialogs open on the keypad, not on Delete last digit: type th
   await button(wizard, 'Cancel').click();
   await expect(wizard).toBeHidden();
 });
+
+test('a refused report date range moves focus to the invalid date, which carries the message (WCAG 3.3.1, D-137)', async ({ page }) => {
+  await freshStart(page);
+  await firstRun(page);
+  await navigate(page, 'VAT report');
+  await page.getByLabel('From', { exact: true }).fill(londonDate(1));
+  await button(page, 'Run report').focus();
+  await page.keyboard.press('Enter');
+  const to = page.getByLabel('To', { exact: true });
+  await expect(to).toBeFocused();
+  await expect(to).toHaveAttribute('aria-invalid', 'true');
+  await expect(to).toHaveAccessibleDescription(/Choose a valid date range: the end date must be on or after the start date/);
+});

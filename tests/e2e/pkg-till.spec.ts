@@ -783,3 +783,80 @@ test('a basket with a deal and a member, and a loaded tab, survive Lock and auto
   await expect(basket.getByTestId('tab-badge')).toContainText('Hendry');
   await closeBasket(page);
 });
+
+// ---------------------------------------------------------------------------
+// Regressions: a failed draft save, adds announced (D-137)
+// ---------------------------------------------------------------------------
+
+test('a failed draft save stays on screen with Try again, which brings the saved basket up to date (spec §8, D-095, D-137)', async ({ page }) => {
+  await setUpTrading(page);
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await expectTotal(page, 420);
+  const draftLines = async () => (await readStore<Draft>(page, 'draft'))[0]?.lines.map((line) => line.qty) ?? [];
+  await expect.poll(draftLines).toEqual([1]);
+
+  // Storage refuses every draft write from now on (e.g. the device is full).
+  await page.evaluate(() => {
+    const originals = { put: IDBObjectStore.prototype.put, add: IDBObjectStore.prototype.add };
+    (window as unknown as { __restoreDraftWrites: () => void }).__restoreDraftWrites = () => {
+      IDBObjectStore.prototype.put = originals.put;
+      IDBObjectStore.prototype.add = originals.add;
+    };
+    for (const method of ['put', 'add'] as const) {
+      const original = originals[method];
+      IDBObjectStore.prototype[method] = function (this: IDBObjectStore, ...args: Parameters<IDBObjectStore['put']>) {
+        if (this.name === 'draft') throw new DOMException('Quota exceeded', 'QuotaExceededError');
+        return original.apply(this, args);
+      };
+    }
+  });
+  await addProduct(page, 'Draught', 'Fairway Lager');
+  await expectTotal(page, 900);
+  const banner = page.getByTestId('draft-error');
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText('The basket could not be saved.');
+  await expect(banner).toContainText('If this page is reloaded now, the latest changes to the basket will be lost.');
+  await expect(page.getByTestId('toast').filter({ hasText: 'The basket could not be saved as a draft' })).toBeVisible();
+  // Re-pricing finishing afterwards does not hide it.
+  await page.waitForTimeout(1000);
+  await expect(banner).toBeVisible();
+  expect(await draftLines()).toEqual([1]);
+
+  // Try again while storage still fails keeps it; once storage works it saves the whole basket.
+  await banner.getByRole('button', { name: 'Try again' }).click();
+  await expect(banner).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __restoreDraftWrites: () => void }).__restoreDraftWrites());
+  await banner.getByRole('button', { name: 'Try again' }).click();
+  await expect(banner).toBeHidden();
+  await expect(page.getByTestId('toast').filter({ hasText: 'Basket saved' })).toBeVisible();
+  await expect.poll(draftLines).toEqual([1, 1]);
+
+  await page.reload();
+  await login(page, MANAGER.pin);
+  await expectTotal(page, 900);
+});
+
+test('each product added is announced with the basket’s new count and total (WCAG 4.1.3, D-137)', async ({ page }) => {
+  await setUpTrading(page);
+  const announcement = page.getByTestId('till-announcement');
+  await expect(announcement).toHaveAttribute('role', 'status');
+  await expect(announcement).toHaveText('');
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await expect(announcement).toHaveText('Club Bitter added. 1 item, £4.20.');
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await expect(announcement).toHaveText('Club Bitter added. 2 items, £8.40.');
+
+  // A line's + is announced too; on a phone the region is inside the open basket sheet, since the
+  // rest of the app is inert behind it.
+  const basket = await openBasket(page);
+  const region = isNarrow(page) ? basket.getByTestId('till-announcement') : announcement;
+  await expect(page.getByTestId('till-announcement')).toHaveCount(1);
+  await basket.getByRole('button', { name: 'Add one Club Bitter' }).click();
+  await expect(region).toHaveText('Club Bitter added. 3 items, £12.60.');
+  await closeBasket(page);
+  await expect(announcement).toHaveCount(1);
+
+  // A product from another category, by its own button.
+  await addProduct(page, 'Snacks', 'Chocolate Bar');
+  await expect(announcement).toHaveText('Chocolate Bar added. 4 items, £14.00.');
+});

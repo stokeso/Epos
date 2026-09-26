@@ -514,3 +514,33 @@ test('members: staff can search, but saving a member needs a manager PIN (overri
   expect(overrides[0]).toMatchObject({ staffId: sam?.id, approvedById: morgan?.id, detail: { action: 'manageMembersStaffSettings' } });
   expect((await readStore<Member>(page, 'members')).find((m) => m.memberNumber === '1021')).toMatchObject({ firstName: 'Victor', lastName: 'Vance', active: true });
 });
+
+test('keyboard focus: Mark settled and Cancel booking go with the closed booking’s card, and focus stays on the page (D-135, D-137)', async ({ page }) => {
+  await freshStart(page);
+  await firstRun(page);
+  /** 'body' when focus is lost, else the focused element's tag and id. */
+  const focused = () =>
+    page.evaluate(() => {
+      const active = document.activeElement;
+      if (active === null || active === document.body) return 'body';
+      return `${active.tagName.toLowerCase()}${active.id === '' ? '' : `#${active.id}`}`;
+    });
+
+  for (const [booking, action, confirmTitle] of [
+    ['Seniors Society Day', 'Mark settled', 'Mark this booking settled?'],
+    ['Smith & Jones Wedding', 'Cancel booking', 'Cancel this booking?'],
+  ] as const) {
+    await navigate(page, 'Bookings');
+    await bookingRow(page, booking).click();
+    await expectHeading(page, booking);
+    await button(page, action).focus();
+    await page.keyboard.press('Enter');
+    const confirm = page.getByRole('dialog', { name: confirmTitle });
+    await button(confirm, action).focus();
+    await page.keyboard.press('Enter');
+    await expect(confirm).toBeHidden();
+    await expect(page.getByTestId('booking-closed')).toBeVisible();
+    await expect(button(page, action)).toHaveCount(0);
+    await expect.poll(focused, { message: `${action}: focus fell to <body>` }).toBe('main#main');
+  }
+});

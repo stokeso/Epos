@@ -681,3 +681,87 @@ test('a blocked receipt survives a stray tap, Escape and an auto-lock: only Clos
   await receipt.close();
   await expect(panel).toBeHidden();
 });
+
+// ---------------------------------------------------------------------------
+// Regressions: the locked basket on the till, Cash keeps focus (D-137)
+// ---------------------------------------------------------------------------
+
+test('with money taken the till shows the locked basket at the price being charged, whatever changes in the back office (D-011, D-033, D-137)', async ({ page }) => {
+  await setUpTrading(page);
+  // 2 × Club Bitter £8.40 with member 1001 at 15%: -£1.26, £7.14.
+  await addProduct(page, 'Draught', 'Club Bitter', 2);
+  await attachMember(page, '1001', '1001 — Alice Archer');
+  await expectTillTotal(page, 714);
+  await openPay(page);
+  await button(page, '£5').click();
+  await expectPayFigures(page, { due: 714, remaining: 214, change: 0 });
+
+  // Mid-payment the manager changes Club Bitter to £4.60 and the member discount to 10%.
+  await navigate(page, 'Back office');
+  await page.getByRole('link', { name: 'Products', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit Club Bitter' }).click();
+  const edit = page.getByRole('dialog', { name: 'Edit product' });
+  await edit.getByLabel('Price', { exact: true }).fill('4.60');
+  await edit.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByTestId('toast').filter({ hasText: 'Club Bitter: price changed from £4.20 to £4.60' })).toBeVisible();
+  await navigate(page, 'Back office');
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByLabel('Member discount').fill('10');
+  await button(page, 'Save settings').click();
+  await expect(page.getByTestId('toast').filter({ hasText: 'Settings saved' })).toBeVisible();
+
+  // The till, under 'Payment in progress', shows what Pay is charging: £7.14 at £4.20 and 15%.
+  await navigate(page, 'Till');
+  await expect(page.getByText('The basket is locked until the payment is finished or cancelled.')).toBeVisible();
+  await expectTillTotal(page, 714);
+  const basket = isNarrow(page) ? page.getByRole('dialog', { name: 'Basket' }) : page.getByRole('complementary', { name: 'Basket' });
+  if (isNarrow(page)) await page.getByRole('button', { name: 'View basket' }).click();
+  await expectMoney(basket.getByTestId('basket-total'), 714);
+  await expect(basket).toContainText('@ £4.20');
+  await expect(basket).not.toContainText('£4.60');
+  await expect(basket.getByTestId('member-discount-line')).toContainText('Member discount (15%)');
+  await expect(basket.getByTestId('member-discount-line')).toContainText('-£1.26');
+  if (isNarrow(page)) {
+    await expect(basket.getByRole('button', { name: 'Pay £7.14' })).toBeAttached();
+    await basket.getByRole('button', { name: 'Close' }).click();
+  }
+  await page.getByRole('link', { name: 'Return to payment' }).click();
+  await expectPayFigures(page, { due: 714, remaining: 214, change: 0 });
+
+  // Cancelling the payment unlocks the basket, which is priced at now again (D-009):
+  // 2 × £4.60 = £9.20, member 10% -£0.92 = £8.28.
+  await button(page, 'Cancel payment').click();
+  await button(page.getByRole('dialog', { name: 'Cancel this payment?' }), 'Yes, cancel').click();
+  await expect(page).toHaveURL(/#\/till$/);
+  await expectTillTotal(page, 828);
+});
+
+test('Cash keeps keyboard focus after a part cash tender clears the keypad, and ignores Enter until an amount is typed (D-134, D-137)', async ({ page }) => {
+  await setUpTrading(page);
+  await addProduct(page, 'Draught', 'Club Bitter', 3);
+  await openPay(page);
+  await expectPayFigures(page, { due: 1260, remaining: 1260, change: 0 });
+  await page.waitForTimeout(500); // Pay's 400 ms rest after opening (D-134)
+  for (const digit of '500') await page.keyboard.press(digit);
+  await expectMoney(page.getByTestId('tender-amount'), 500);
+  const cash = button(page, 'Cash');
+  await cash.focus();
+  await page.keyboard.press('Enter');
+  await expectPayFigures(page, { due: 1260, remaining: 760, change: 0 });
+  await expect(page.getByTestId('tender-row')).toHaveCount(1);
+  await expect(cash).toBeFocused();
+  await expect(cash).toBeDisabled();
+
+  // Enter again on the unavailable Cash key takes nothing.
+  await page.waitForTimeout(500);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(200);
+  await expectPayFigures(page, { due: 1260, remaining: 760, change: 0 });
+  await expect(page.getByTestId('tender-row')).toHaveCount(1);
+  await expect(cash).toBeFocused();
+
+  // An amount makes it available again, still focused.
+  for (const digit of '200') await page.keyboard.press(digit);
+  await expect(cash).toBeEnabled();
+  await expect(cash).toBeFocused();
+});

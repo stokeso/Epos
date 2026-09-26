@@ -281,3 +281,25 @@ test('keyboard use of the PIN keypads: Enter presses a focused key, focus never 
   await expect(override).toBeHidden();
   await expect(page.getByTestId('toast').filter({ hasText: 'Drawer opened' })).toBeVisible();
 });
+
+test('Lock from the keyboard puts focus on the PIN keypad, so the login screen is announced and Enter logs in (D-132, D-136, D-137)', async ({ page }) => {
+  await freshStart(page);
+  await firstRun(page);
+  const lockButton = page.getByRole('button', { name: 'Lock', exact: true });
+  await lockButton.focus();
+  await page.keyboard.press('Enter');
+  const keypad = loginKeypad(page);
+  await expect(keypad).toBeVisible();
+  await expect(keypad).toBeFocused();
+  await expect(keypad).toHaveAccessibleName('Enter your PIN');
+  await page.keyboard.type(STAFF.pin);
+  await page.keyboard.press('Enter');
+  await page.waitForURL(/#\/till$/);
+  await expect(page.getByTestId('current-staff')).toHaveText(STAFF.name);
+
+  // A reload lands on the keypad too; Tab from it reaches its first key.
+  await page.reload();
+  await expect(keypad).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(keypad.getByRole('button', { name: '1', exact: true })).toBeFocused();
+});
