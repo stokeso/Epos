@@ -6,7 +6,7 @@ import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@t
 import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { downloadTextFile } from '../../src/app/download';
-import { errorMessage, fieldErrorsOf } from '../../src/app/errors';
+import { errorMessage, fieldErrorsOf, STORAGE_ERROR_MESSAGE } from '../../src/app/errors';
 import { useAutoLock } from '../../src/app/useAutoLock';
 import { useLoad } from '../../src/app/useLoad';
 import { AppError } from '../../src/data/errors';
@@ -708,6 +708,20 @@ describe('errors and downloads', () => {
     expect(fieldErrorsOf(error)).toEqual({ name: 'Enter a name' });
     expect(fieldErrorsOf(new Error('x'))).toEqual({});
     expect(errorMessage('weird')).toBe('Something went wrong. Try again.');
+  });
+
+  it('shows plain words for a failure of the device storage, never its technical text (D-138)', () => {
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(errorMessage(new DOMException('boom', 'UnknownError'))).toBe(STORAGE_ERROR_MESSAGE);
+    // Dexie's wrapper errors carry the same names.
+    expect(errorMessage(Object.assign(new Error('Transaction aborted: QuotaExceededError'), { name: 'AbortError' }))).toBe(STORAGE_ERROR_MESSAGE);
+    expect(errorMessage(Object.assign(new Error('Database has been closed'), { name: 'DatabaseClosedError' }))).toBe(STORAGE_ERROR_MESSAGE);
+    expect(quiet).toHaveBeenCalledTimes(3);
+    // A service's AppError and any other error keep their own message.
+    expect(errorMessage(new AppError('NO_OPEN_PERIOD', 'No trading period is open'))).toBe('No trading period is open');
+    expect(errorMessage(new Error('Maximum quantity is 999'))).toBe('Maximum quantity is 999');
+    expect(errorMessage(new DOMException('The file could not be read', 'NotReadableError'))).toBe('The file could not be read');
+    quiet.mockRestore();
   });
 
   it('downloads text through a Blob URL and an <a download> click', () => {

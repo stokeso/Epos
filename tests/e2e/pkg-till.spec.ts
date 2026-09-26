@@ -10,6 +10,7 @@ import {
   STAFF,
   SUPERVISOR,
   approveOverride,
+  chosenOptionStandsOut,
   enterMoney,
   enterPin,
   expectMoney,
@@ -859,4 +860,217 @@ test('each product added is announced with the basket’s new count and total (W
   // A product from another category, by its own button.
   await addProduct(page, 'Snacks', 'Chocolate Bar');
   await expect(announcement).toHaveText('Chocolate Bar added. 4 items, £14.00.');
+});
+
+// ---------------------------------------------------------------------------
+// Regressions (D-138): long names beside the steppers, forced colours, an add after a void, a
+// failed re-pricing
+// ---------------------------------------------------------------------------
+
+/**
+ * Test set-up only: renames sample products and sets their prices straight in IndexedDB, then
+ * reloads and logs in again so the till reads them. The names and prices are valid ones
+ * (names 1..40 characters, prices up to £9,999.99).
+ */
+async function renameProducts(page: Page, changes: Record<string, { name: string; pricePence: number }>): Promise<void> {
+  await page.evaluate(async (changes) => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = indexedDB.open('club-epos');
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error ?? new Error('open failed'));
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction('products', 'readwrite');
+      const store = tx.objectStore('products');
+      const request = store.getAll();
+      request.onsuccess = () => {
+        for (const product of request.result as { name: string }[]) {
+          const change = changes[product.name];
+          if (change !== undefined) store.put({ ...product, ...change });
+        }
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? new Error('put failed'));
+    });
+    db.close();
+  }, changes);
+  await page.reload();
+  await login(page, MANAGER.pin);
+}
+
+/**
+ * Test set-up only: makes IndexedDB reads of one object store throw, as failing device storage
+ * would (spec §8); null makes them work again. Lasts until the page reloads.
+ */
+async function failReadsOf(page: Page, store: string | null): Promise<void> {
+  await page.evaluate((store) => {
+    const state = window as unknown as { __failReadsOf?: string | null };
+    if (state.__failReadsOf === undefined) {
+      const patch = (proto: object, storeOf: (target: unknown) => string): void => {
+        for (const method of ['get', 'getAll', 'getAllKeys', 'getKey', 'count', 'openCursor', 'openKeyCursor']) {
+          const original: unknown = Reflect.get(proto, method);
+          if (typeof original !== 'function') continue;
+          Reflect.set(proto, method, function (this: unknown, ...args: unknown[]): unknown {
+            if (storeOf(this) === state.__failReadsOf) throw new DOMException('Simulated read failure', 'UnknownError');
+            return (original as (...a: unknown[]) => unknown).apply(this, args);
+          });
+        }
+      };
+      patch(IDBObjectStore.prototype, (target) => (target as IDBObjectStore).name);
+      patch(IDBIndex.prototype, (target) => (target as IDBIndex).objectStore.name);
+    }
+    state.__failReadsOf = store;
+  }, store);
+}
+
+test('long product names wrap between words beside the line steppers; "@ £unit" and the gross never split (D-138)', async ({ page }) => {
+  await setUpTrading(page);
+  await renameProducts(page, {
+    'Club Bitter': { name: 'Glenmorangie 18 Year Old Single Malt', pricePence: 1250 },
+    'Prosecco (bottle)': { name: 'Wedding Reception Package with Champagne', pricePence: 450_000 },
+  });
+  await addProduct(page, 'Draught', 'Glenmorangie 18 Year Old Single Malt', 12);
+  await addProduct(page, 'Wine', 'Wedding Reception Package with Champagne', 3);
+  await expectTotal(page, 12 * 1250 + 3 * 450_000);
+
+  const basket = await openBasket(page);
+  const lines = basket.getByRole('list', { name: 'Basket lines' });
+  await expect(lines.getByRole('listitem')).toHaveCount(2);
+  await expect(lines.getByRole('button', { name: 'Add one Glenmorangie 18 Year Old Single Malt' })).toBeVisible();
+  // Every word of a name, and each price ('@ £4,500.00', '£13,500.00'), sits on one line.
+  const split = await lines.evaluate((list) => {
+    const broken: string[] = [];
+    for (const span of list.querySelectorAll('li span')) {
+      const node = span.firstChild;
+      if (span.childElementCount > 0 || !(node instanceof Text)) continue;
+      const text = node.data;
+      const pieces: [number, number][] = text.startsWith('@ ') ? [[0, text.length]] : Array.from(text.matchAll(/\S+/g), (m) => [m.index, m.index + m[0].length]);
+      for (const [start, end] of pieces) {
+        const range = document.createRange();
+        range.setStart(node, start);
+        range.setEnd(node, end);
+        const rows = new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top)));
+        if (rows.size > 1) broken.push(text.slice(start, end));
+      }
+    }
+    return broken;
+  });
+  expect(split).toEqual([]);
+  await expectNoHorizontalScroll(page);
+});
+
+test('forced colours (Windows High Contrast) keep the chosen Void line, Name or Table, and the typed PIN digits visible (D-138)', async ({ page }) => {
+  await setUpTrading(page);
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await addProduct(page, 'Draught', 'Fairway Lager');
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
+
+  // The Void dialog's list of lines decides which line is voided.
+  await action(page, 'Void').click();
+  const voidDialog = page.getByRole('dialog', { name: 'Void item' });
+  await voidDialog.getByRole('radio').nth(1).check();
+  await expect.poll(() => chosenOptionStandsOut(voidDialog.getByRole('group', { name: 'Item' }))).toBe(true);
+  await voidDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(voidDialog).toBeHidden();
+
+  // The Tab dialog's Name / Table segments.
+  await action(page, 'Tab').click();
+  const tabDialog = page.getByRole('dialog', { name: 'Tab' });
+  await tabDialog.getByRole('radio', { name: 'Table' }).check();
+  await expect.poll(() => chosenOptionStandsOut(tabDialog.getByRole('group', { name: 'Tab by' }))).toBe(true);
+  await tabDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(tabDialog).toBeHidden();
+
+  // The PIN dots: the digits typed are filled, the rest are not.
+  await lock(page);
+  const keypad = loginKeypad(page);
+  for (const digit of '12') await keypad.getByRole('button', { name: digit, exact: true }).click();
+  const filled = () =>
+    keypad.evaluate((root) => {
+      const canvas = getComputedStyle(document.body).backgroundColor;
+      return Array.from(root.querySelectorAll(':scope > [aria-hidden="true"] > span'), (dot) => {
+        const fill = getComputedStyle(dot).backgroundColor;
+        return fill !== canvas && fill !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(fill);
+      });
+    });
+  await expect.poll(filled).toEqual([true, true, false, false]);
+});
+
+test('an add is announced even when the text matches the last one, as after a void; a void clears the old figures (WCAG 4.1.3, D-137, D-138)', async ({ page }) => {
+  await setUpTrading(page);
+  await addProduct(page, 'Draught', 'Club Bitter', 2);
+  const basket = await openBasket(page);
+  const region = page.getByTestId('till-announcement');
+  await expect(region).toHaveCount(1);
+  await expect(region).toHaveText('Club Bitter added. 2 items, £8.40.');
+  // What the polite region says: its text after each change to it (screen readers read changes).
+  await region.evaluate((element) => {
+    const said: string[] = [];
+    Reflect.set(window, '__said', said);
+    new MutationObserver(() => said.push(element.textContent ?? '')).observe(element, { childList: true, subtree: true, characterData: true });
+  });
+  const said = () => page.evaluate(() => (Reflect.get(window, '__said') as string[]).filter((text) => text !== ''));
+  const draftQty = async () => (await readStore<Draft>(page, 'draft'))[0]?.lines[0]?.qty;
+  const minus = basket.getByRole('button', { name: 'Remove one Club Bitter' });
+  const plus = basket.getByRole('button', { name: 'Add one Club Bitter' });
+
+  await minus.click();
+  await expect.poll(draftQty).toBe(1);
+  await expect(region).toHaveText('');
+  await plus.click();
+  await expect.poll(said).toEqual(['Club Bitter added. 2 items, £8.40.']);
+  await plus.click();
+  await expect.poll(said).toEqual(['Club Bitter added. 2 items, £8.40.', 'Club Bitter added. 3 items, £12.60.']);
+  await minus.click();
+  await expect.poll(draftQty).toBe(2);
+  await plus.click();
+  await expect.poll(said).toEqual(['Club Bitter added. 2 items, £8.40.', 'Club Bitter added. 3 items, £12.60.', 'Club Bitter added. 3 items, £12.60.']);
+  await expect(region).toHaveText('Club Bitter added. 3 items, £12.60.');
+});
+
+test('a failed re-pricing shows no total and no Pay, not the last basket’s; Try again and Reload products keep focus on the page (spec §6.3, §8, D-135, D-138)', async ({ page }) => {
+  await setUpTrading(page);
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await expectTotal(page, 420);
+  const focusLost = () => page.evaluate(() => document.activeElement === null || document.activeElement === document.body);
+  const pay = page.getByRole('button', { name: 'Pay', exact: true });
+
+  // The deals can't be read, so the second Club Bitter can't be priced.
+  await failReadsOf(page, 'deals');
+  await addProduct(page, 'Draught', 'Club Bitter');
+  const banner = page.getByTestId('basket-error');
+  await expect(banner).toContainText('The basket could not be updated.');
+  await expect(banner).toContainText('The till couldn’t use this device’s storage.');
+  await expect(banner).not.toContainText('Error');
+  await expect(page.getByTestId('till-announcement')).toHaveText('Club Bitter added. 2 items. The total could not be worked out.');
+  await expect(pay).toBeDisabled();
+  if (isNarrow(page)) await expect(page.getByTestId('basket-bar-total')).toHaveText('Total unavailable');
+  const basket = await openBasket(page);
+  await expect(basket.getByTestId('basket-total')).toHaveText('Unavailable');
+  await expect(basket.getByRole('list', { name: 'Basket lines' })).toHaveCount(0);
+  await expect(basket.getByText('£4.20')).toHaveCount(0);
+  await expect(basket.getByRole('button', { name: /^Pay/ })).toBeDisabled();
+  await closeBasket(page);
+
+  // Storage works again: Try again from the keyboard prices the basket, and focus stays on the page.
+  await failReadsOf(page, null);
+  await banner.getByRole('button', { name: 'Try again' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(banner).toHaveCount(0);
+  await expectTotal(page, 840);
+  await expect(pay).toBeEnabled();
+  await expect.poll(focusLost).toBe(false);
+
+  // The products can't be read when the till opens: Reload products, once they can, keeps focus too.
+  await navigate(page, 'Tabs');
+  await failReadsOf(page, 'categories');
+  await navigate(page, 'Till');
+  const reload = page.getByRole('button', { name: 'Reload products' });
+  await expect(reload).toBeVisible();
+  await failReadsOf(page, null);
+  await reload.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('tab', { name: 'Draught', exact: true })).toBeVisible();
+  await expect(reload).toHaveCount(0);
+  await expect.poll(focusLost).toBe(false);
 });

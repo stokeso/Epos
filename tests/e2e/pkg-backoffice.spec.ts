@@ -673,3 +673,53 @@ test('keyboard focus: Cancel on a checked backup file removes itself and focus s
   await expect(summary).toHaveCount(0);
   await expect.poll(() => focusedElement(page)).toBe('main#main');
 });
+
+// ---------------------------------------------------------------------------
+// Regressions: saving Settings and choosing a backup file keep keyboard focus (D-135, D-138)
+// ---------------------------------------------------------------------------
+
+test('keyboard focus: saving Settings keeps focus on Save settings, or on the field where Enter was pressed, which shows the value saved (D-135, D-138)', async ({ page }) => {
+  await openSection(page, 'Settings', /#\/backoffice\/settings$/);
+  await page.getByLabel('Receipt footer').fill('Thanks for visiting');
+  const save = page.getByRole('button', { name: 'Save settings' });
+  await save.focus();
+  await page.keyboard.press('Enter');
+  await expect(toast(page, 'Settings saved')).toBeVisible();
+  await expect.poll(async () => (await readStore<Settings>(page, 'settings'))[0]?.receiptFooter).toBe('Thanks for visiting');
+  await expect(save).toBeFocused();
+
+  // Enter in a field saves the form; the field keeps focus and shows the name as saved (spaces collapsed).
+  const clubName = page.getByLabel('Club name');
+  await clubName.fill('  Oakfield   GC Bar ');
+  await clubName.press('Enter');
+  await expect(page.getByRole('link', { name: 'Oakfield GC Bar' })).toBeVisible();
+  await expect(clubName).toHaveValue('Oakfield GC Bar');
+  await expect(clubName).toBeFocused();
+
+  // Staff need a manager PIN for the save: focus comes back to Save settings and stays there.
+  await lock(page);
+  await login(page, STAFF.pin);
+  await openSection(page, 'Settings', /#\/backoffice\/settings$/);
+  await page.getByLabel('Receipt footer').fill('See you at the 19th');
+  await save.focus();
+  await page.keyboard.press('Enter');
+  await approveOverride(page, MANAGER.pin);
+  await expect.poll(async () => (await readStore<Settings>(page, 'settings'))[0]?.receiptFooter).toBe('See you at the 19th');
+  await expect(save).toBeFocused();
+});
+
+test('keyboard focus: choosing a backup file keeps focus on the file input while it is checked and after (D-134, D-138)', async ({ page }) => {
+  await openSection(page, 'Backup', /#\/backoffice\/backup$/);
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export backup' }).click()]);
+
+  const input = page.getByLabel('Choose backup file');
+  await input.focus();
+  await input.setInputFiles({ name: 'notes.json', mimeType: 'application/json', buffer: Buffer.from('{"format":"nope"}') });
+  await expect(page.getByTestId('backup-problems')).toContainText('The file is not a Club EPOS backup');
+  const another = page.getByLabel('Choose another file');
+  await expect(another).toBeFocused();
+
+  await another.setInputFiles(await download.path());
+  await expect(page.getByTestId('backup-summary')).toContainText('It is a valid Club EPOS backup.');
+  await expect(another).toBeFocused();
+});

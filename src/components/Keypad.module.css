@@ -185,6 +185,15 @@
   opacity: 1;
 }
 
+/* Forced colours replace the fill: keep typed digits solid (D-138). */
+@media (forced-colors: active) {
+  .dotFilled {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: CanvasText;
+  }
+}
+
 .message {
   min-height: 1.5em;
   text-align: center;

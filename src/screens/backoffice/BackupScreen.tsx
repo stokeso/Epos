@@ -6,7 +6,7 @@
  * Import is refused while a payment has tenders taken: the money is in the drawer and the import
  * would drop it with no record and no hand-back instruction (D-134, as D-130 for Z close).
  */
-import { useId, useState, type ChangeEvent } from 'react';
+import { useId, useRef, useState, type ChangeEvent } from 'react';
 import { Banner } from '../../components/Banner';
 import { Button, ButtonLink } from '../../components/Button';
 import { keepFocusWhenRemoved } from '../../components/focus';
@@ -106,12 +106,17 @@ function ImportPanel() {
   const [confirmation, setConfirmation] = useState('');
   const importer = useGatedForm(['confirmation']);
   const paying = usePayStore((s) => s.session !== null && s.session.tender.tenders.length > 0);
+  /** While a file is read or an import runs, the file input ignores clicks and new files. */
+  const unavailable = reading || importer.busy;
+  /** Set as soon as a file is being read, before `reading` re-renders the input. */
+  const readingRef = useRef(false);
 
   const choose = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const input = event.currentTarget;
     const file = input.files?.[0];
     input.value = '';
-    if (file === undefined) return;
+    if (file === undefined || readingRef.current || importer.busy) return;
+    readingRef.current = true;
     setReading(true);
     setReadError(null);
     setChecked(null);
@@ -124,6 +129,7 @@ function ImportPanel() {
     } catch (error) {
       setReadError(`That file couldn't be read: ${errorMessage(error)}`);
     } finally {
+      readingRef.current = false;
       setReading(false);
     }
   };
@@ -172,9 +178,15 @@ function ImportPanel() {
           accept=".json,application/json"
           className={`visually-hidden ${backupStyles.fileInput}`}
           onChange={(event) => void choose(event)}
-          disabled={reading || importer.busy}
+          // Not natively disabled while the file is checked: the input has focus after a keyboard
+          // user picks a file, and disabling it would drop focus to <body> (D-134, D-138). It
+          // ignores clicks (no file picker) and new files until the check is done.
+          aria-disabled={unavailable || undefined}
+          onClick={(event) => {
+            if (unavailable || readingRef.current) event.preventDefault();
+          }}
         />
-        <label htmlFor={inputId} className={`${backupStyles.fileLabel} ${reading || importer.busy ? backupStyles.fileLabelDisabled : ''}`}>
+        <label htmlFor={inputId} className={`${backupStyles.fileLabel} ${unavailable ? backupStyles.fileLabelDisabled : ''}`}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <path d="M4 15.5V19a1.5 1.5 0 001.5 1.5h13A1.5 1.5 0 0020 19v-3.5M12 14.5v-11M7.5 8L12 3.5 16.5 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

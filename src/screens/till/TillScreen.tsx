@@ -45,6 +45,9 @@ import styles from './TillScreen.module.css';
 
 type DialogKind = 'member' | 'tab' | 'booking' | 'void';
 
+/** Shown for the total while the basket could not be priced (D-138). */
+const TOTAL_UNAVAILABLE = 'Total unavailable';
+
 /** id of the product grid (role="tabpanel"). One till is mounted at a time. */
 const PRODUCTS_PANEL_ID = 'till-products';
 
@@ -66,8 +69,12 @@ export function TillScreen() {
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'pay' | 'noSale' | null>(null);
-  /** Polite status text: what was just added and the basket's new count and total (WCAG 4.1.3). */
-  const [announcement, setAnnouncement] = useState('');
+  /**
+   * Polite status text: what was just added and the basket's new count and total (WCAG 4.1.3).
+   * `id` changes with every add, so an add whose text matches the last one's (an add after a void)
+   * still changes the region and is read out (D-138).
+   */
+  const [announcement, setAnnouncement] = useState({ id: 0, text: '' });
 
   useEffect(() => {
     // Back on the till with a sale payment that took no tenders: its frozen pricing is stale
@@ -84,6 +91,9 @@ export function TillScreen() {
   const selected = selectedLine !== null && basket.lines.some((l) => l.productId === selectedLine) ? selectedLine : null;
   const unitCount = basketUnitCount(basket);
   const totalPence = view?.priced.totalPence ?? 0;
+  // Re-pricing failed: `view` still holds the last basket priced, not this one, so its lines and
+  // total are not shown as the basket's and Pay waits for a pricing that works (D-138).
+  const stale = basketError !== null;
   // The % the frozen pricing used while the basket is locked, never a live setting beside it (D-135, D-137).
   const shownDiscountPercent = frozen && paySession?.kind === 'sale' ? (paySession.memberDiscountPercent ?? undefined) : discountPercent;
 
@@ -106,12 +116,18 @@ export function TillScreen() {
       .addProduct(productId)
       .then((added) => {
         if (!added) return;
-        // Figures are the store's (viewBasket), read once the add has been priced.
+        // Figures are the store's (viewBasket), read once the add has been priced. When that
+        // pricing failed, the view is the previous basket's: say so rather than read out its total.
         const state = useBasketStore.getState();
-        const name = state.view?.priced.lines.find((line) => line.productId === productId)?.name;
+        const priced = state.error === null ? state.view?.priced : undefined;
+        const name = priced?.lines.find((line) => line.productId === productId)?.name ?? catalogue.data?.products.find((p) => p.id === productId)?.name;
         const units = basketUnitCount(state.basket);
-        const total = state.view === null ? '' : `, ${formatPence(state.view.priced.totalPence)}`;
-        setAnnouncement(`${name ?? 'Item'} added. ${units} ${units === 1 ? 'item' : 'items'}${total}.`);
+        const count = `${units} ${units === 1 ? 'item' : 'items'}`;
+        const text =
+          priced === undefined
+            ? `${name ?? 'Item'} added. ${count}.${state.error === null ? '' : ' The total could not be worked out.'}`
+            : `${name ?? 'Item'} added. ${count}, ${formatPence(priced.totalPence)}.`;
+        setAnnouncement((previous) => ({ id: previous.id + 1, text }));
       });
   };
 
@@ -122,6 +138,8 @@ export function TillScreen() {
     if (auth === null) return;
     try {
       await useBasketStore.getState().voidLine(auth, line.productId, 1);
+      // The last add's count and total no longer hold; the void has its own toast.
+      setAnnouncement((previous) => ({ id: previous.id + 1, text: '' }));
       toast(`Voided 1 × ${line.name}`, { tone: 'success' });
     } catch (caught) {
       fail(caught);
@@ -176,7 +194,7 @@ export function TillScreen() {
     setDialog(kind);
   };
 
-  const payDisabled = !hasPeriod || !hasLines || paymentInProgress;
+  const payDisabled = !hasPeriod || !hasLines || paymentInProgress || stale;
 
   /** Saves the draft again; the banner goes once it is saved (D-137). */
   const retryDraft = async (): Promise<void> => {
@@ -207,13 +225,21 @@ export function TillScreen() {
         <Banner
           tone="danger"
           title="The basket could not be updated."
+          testId="basket-error"
           action={
-            <Button size="sm" onClick={() => void useBasketStore.getState().refresh()}>
+            <Button
+              size="sm"
+              onClick={(event) => {
+                // Once the basket is priced the banner, and this button, go (D-135).
+                keepFocusWhenRemoved(event.currentTarget);
+                void useBasketStore.getState().refresh();
+              }}
+            >
               Try again
             </Button>
           }
         >
-          {basketError}
+          Its lines and total can’t be shown, and Pay is unavailable, until it is priced again. {basketError}
         </Banner>
       )}
       {draftError !== null && (
@@ -234,7 +260,7 @@ export function TillScreen() {
             </Button>
           }
         >
-          If this page is reloaded now, the latest changes to the basket will be lost. {draftError}
+          If this page is reloaded now, the latest changes to the basket will be lost.
         </Banner>
       )}
     </>
@@ -245,7 +271,7 @@ export function TillScreen() {
   // behind a modal, so a region outside it would not be read out).
   const announcer = (
     <p role="status" className="visually-hidden" data-testid="till-announcement">
-      {announcement}
+      {announcement.text !== '' && <span key={announcement.id}>{announcement.text}</span>}
     </p>
   );
   const sheetShown = sheetOpen && !wide;
@@ -261,6 +287,7 @@ export function TillScreen() {
       onRemoveMember={frozen ? undefined : detachMember}
       onRemoveBooking={frozen ? undefined : detachBooking}
       pricing={pricing}
+      stale={stale}
       hideHeading={!wide}
       disabled={frozen}
       className={wide ? styles.panel : styles.sheetPanel}
@@ -310,7 +337,7 @@ export function TillScreen() {
             title="Basket"
             open={sheetOpen}
             onOpenChange={setSheetOpen}
-            summary={<SheetSummary view={view} unitCount={unitCount} totalPence={totalPence} />}
+            summary={<SheetSummary view={view} unitCount={unitCount} totalPence={stale ? null : totalPence} />}
             barActions={
               <Button variant="primary" size="lg" onClick={() => void pay()} busy={busy === 'pay'} disabled={payDisabled} className={styles.barPay}>
                 Pay
@@ -318,7 +345,8 @@ export function TillScreen() {
             }
             footer={
               <Button variant="primary" size="lg" block onClick={() => void pay()} busy={busy === 'pay'} disabled={payDisabled}>
-                Pay <span className="tabular">{formatPence(totalPence)}</span>
+                Pay{stale ? '' : ' '}
+                {!stale && <span className="tabular">{formatPence(totalPence)}</span>}
               </Button>
             }
           >
@@ -360,7 +388,14 @@ function ProductArea({ catalogue, basket, disabled, onAdd }: ProductAreaProps) {
             tone="danger"
             title="The products could not be loaded."
             action={
-              <Button size="sm" onClick={catalogue.reload}>
+              <Button
+                size="sm"
+                onClick={(event) => {
+                  // Once the products load the banner, and this button, go (D-135).
+                  keepFocusWhenRemoved(event.currentTarget);
+                  catalogue.reload();
+                }}
+              >
                 Reload products
               </Button>
             }
@@ -502,7 +537,8 @@ function LineStepper({ line, onAdd, onVoid }: LineStepperProps) {
 interface SheetSummaryProps {
   view: BasketView | null;
   unitCount: number;
-  totalPence: number;
+  /** null while the basket could not be priced (D-138). */
+  totalPence: number | null;
 }
 
 function SheetSummary({ view, unitCount, totalPence }: SheetSummaryProps) {
@@ -514,7 +550,8 @@ function SheetSummary({ view, unitCount, totalPence }: SheetSummaryProps) {
   const count = `${unitCount} ${unitCount === 1 ? 'item' : 'items'}`;
   // The total's size is fitted to the room the count leaves (see .sheetTotal), so a four-figure
   // total never runs into the count.
-  const fit = { '--count-chars': count.length, '--total-chars': formatPence(totalPence).length } as CSSProperties;
+  const totalText = totalPence === null ? TOTAL_UNAVAILABLE : formatPence(totalPence);
+  const fit = { '--count-chars': count.length, '--total-chars': totalText.length } as CSSProperties;
   return (
     <span className={styles.sheetSummary} style={fit}>
       <span className={styles.sheetText}>
@@ -523,7 +560,13 @@ function SheetSummary({ view, unitCount, totalPence }: SheetSummaryProps) {
         </span>
         {context.length > 0 && <span className={styles.sheetContext}>{` ${context.join(' · ')}`}</span>}
       </span>{' '}
-      <MoneyText pence={totalPence} size="xl" strong testId="basket-bar-total" className={styles.sheetTotal} />
+      {totalPence === null ? (
+        <span className={`${styles.sheetTotal} ${styles.sheetTotalUnavailable}`} data-testid="basket-bar-total">
+          {totalText}
+        </span>
+      ) : (
+        <MoneyText pence={totalPence} size="xl" strong testId="basket-bar-total" className={styles.sheetTotal} />
+      )}
     </span>
   );
 }

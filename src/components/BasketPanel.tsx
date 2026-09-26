@@ -28,6 +28,11 @@ export interface BasketPanelProps {
   onRemoveBooking?: () => void;
   /** useBasketStore pricing flag (sets aria-busy). */
   pricing?: boolean;
+  /**
+   * The last pricing failed (useBasketStore error): `view` is an older basket's, so its lines and
+   * total are not shown as this basket's (D-138).
+   */
+  stale?: boolean;
   /** Rendered under the total (e.g. the Pay button). */
   actions?: ReactNode;
   /** Default 'Basket'. */
@@ -53,13 +58,14 @@ export function BasketPanel({
   onRemoveMember,
   onRemoveBooking,
   pricing = false,
+  stale = false,
   actions,
   heading = 'Basket',
   hideHeading = false,
   disabled = false,
   className,
 }: BasketPanelProps) {
-  const priced = view?.priced;
+  const priced = stale ? undefined : view?.priced;
   const lines = priced?.lines ?? [];
   const unitCount = basket.lines.reduce((sum, line) => sum + line.qty, 0);
   const memberAttached = view?.member !== undefined;
@@ -133,7 +139,9 @@ export function BasketPanel({
 
       <div className={styles.scroll}>
         {lines.length === 0 ? (
-          <p className={styles.empty}>{basket.lines.length === 0 ? 'No items yet. Tap a product to add it.' : 'Pricing…'}</p>
+          <p className={styles.empty}>
+            {basket.lines.length === 0 ? 'No items yet. Tap a product to add it.' : stale ? 'The lines show again once the basket is priced.' : 'Pricing…'}
+          </p>
         ) : (
           <ul className={styles.lines} aria-label="Basket lines">
             {lines.map((line) => (
@@ -179,7 +187,13 @@ export function BasketPanel({
       <div className={styles.footer}>
         <div className={styles.totalRow}>
           <span className={styles.totalLabel}>Total</span>
-          <MoneyText pence={priced?.totalPence ?? 0} size="2xl" strong testId="basket-total" />
+          {stale ? (
+            <span className={styles.totalUnavailable} data-testid="basket-total">
+              Unavailable
+            </span>
+          ) : (
+            <MoneyText pence={priced?.totalPence ?? 0} size="2xl" strong testId="basket-total" />
+          )}
         </div>
         {actions !== undefined && <div className={styles.actions}>{actions}</div>}
       </div>

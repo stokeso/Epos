@@ -7,7 +7,7 @@
  * (Menu, Lock) off the screen and leave a blank page.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { expectNoHorizontalScroll, firstRun, freshStart } from './helpers';
+import { MANAGER, expectNoHorizontalScroll, firstRun, freshStart, lock, login } from './helpers';
 
 /** Every screen inside the shell, as hash routes. */
 const ROUTES = [
@@ -48,10 +48,14 @@ async function expectShellStill(page: Page): Promise<void> {
 test('the document never scrolls behind the shell on any screen: only <main> does (ui-plan §6, D-137)', async ({ page }) => {
   await freshStart(page);
   await firstRun(page);
+  const heading = page.locator('main h1');
+  let previous = '';
   for (const route of ROUTES) {
     await page.goto(`/#/${route}`);
-    await expect(page.locator('main h1')).toHaveCount(1);
-    // Lazily loaded screens show their content once loaded; let lists render before measuring.
+    // Wait for the new screen (lazily loaded screens keep the last one until they arrive), then
+    // for its lists to render before measuring.
+    await expect.poll(async () => heading.textContent(), { message: `#/${route} did not open` }).not.toBe(previous);
+    previous = (await heading.textContent()) ?? '';
     await expect(page.getByText(/^Loading/)).toHaveCount(0);
     await expect.poll(async () => (await documentScroll(page)).overflow, { message: `#/${route}: the document is taller than the viewport` }).toBe(0);
     await expectNoHorizontalScroll(page);
@@ -85,12 +89,21 @@ test('scrolling over the header or past the end of a long list leaves the header
   await expect(page.getByRole('button', { name: 'Lock', exact: true })).toBeInViewport();
 });
 
-test('choosing a backup file does not scroll the shell to reach the hidden file input (D-137)', async ({ page }) => {
+test('choosing a backup file does not scroll the shell to reach the hidden file input, even under both banners (D-137)', async ({ page }) => {
+  await page.clock.install();
   await freshStart(page);
   await firstRun(page);
-  await page.goto('/#/backoffice/backup');
+  // A week on, the manager's next login shows the backup reminder as well as the storage warning.
+  await lock(page);
+  await page.clock.setSystemTime(Date.now() + 8 * 24 * 60 * 60 * 1000);
+  await login(page, MANAGER.pin);
+  const reminder = page.getByTestId('backup-reminder');
+  await expect(reminder).toBeVisible();
+  await reminder.getByRole('link', { name: 'Back up now' }).click();
+  await expect(page).toHaveURL(/#\/backoffice\/backup$/);
   const input = page.getByLabel('Choose backup file');
   await expect(input).toBeAttached();
+  await expectShellStill(page);
   // Tapping the label focuses the visually hidden input: the browser scrolls it into view.
   await input.focus();
   await page.waitForTimeout(200);

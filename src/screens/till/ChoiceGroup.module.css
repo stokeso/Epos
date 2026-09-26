@@ -156,3 +156,24 @@
 .list .option {
   min-height: var(--touch-lg);
 }
+
+/* Forced colours (Windows High Contrast) drop the background, shadow and gradient mark that show
+   the chosen option, and the native radio is hidden: mark it with the system Highlight (D-138). */
+@media (forced-colors: active) {
+  .group .checked,
+  .group .checked:hover {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .group .checked .detail {
+    color: HighlightText;
+  }
+
+  .group .checked .mark {
+    border-color: HighlightText;
+    background: radial-gradient(circle, HighlightText 0 45%, Highlight 50%);
+  }
+}

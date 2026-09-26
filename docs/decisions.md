@@ -1358,7 +1358,27 @@ How to use this file:
     - Pay's **Cash** key is `aria-disabled`, not natively disabled, while the keypad is empty, so it keeps focus after a part cash tender clears the keypad (it ignores presses until an amount is typed).
     - Deals' **Deactivate / Reactivate** shows busy (aria-disabled) while it saves, so it keeps focus and then shows its new label.
     - A booking's **Mark settled / Cancel booking** and Backup's **Cancel** remove themselves: focus moves to `<main>`, not `<body>`.
-    - The login screen, when it opens with focus lost (after Lock or auto-lock, and on start-up), focuses the PIN keypad group, as the override dialog does (D-132): screen readers announce "Enter your PIN", and Enter there submits the PIN typed.
+    - The login screen, when it opens after a lock (Lock, auto-lock, a backup import) with focus lost, focuses the PIN keypad group, as the override dialog does (D-132): screen readers announce "Enter your PIN", and Enter there submits the PIN typed. On start-up (and a reload) it opens as any page does, with nothing focused, so a touch till does not start on a focus ring; digits and Enter work there anyway (D-073).
   - **Report dates:** a refused date range moves focus to the first invalid date, whose message is its description, as every other form does.
   - **Hover tints** apply only where the pointer can hover (`@media (hover: hover)`), so on a touch screen the last key or button tapped does not stay shaded as if pressed or selected.
 - **Why:** The first let the whole app scroll away; the second showed staff a total other than the one being charged; the third lost basket lines silently after a reload; the rest lost a keyboard or screen-reader user's place or left them without feedback.
+
+### D-138 Basket lines give the name the whole row; a failed re-pricing hides the old figures; every choice keeps a forced-colours marker; focus stays put after a save, a failed payment or a file check; storage failures read as plain words
+- **Spec:** §6.2, §6.3, §6.4, §6.8, §6.9, §8, WCAG 1.4.1, 1.4.11, 2.4.3 and 4.1.3; refines D-034, D-134, D-135 and D-137.
+- **Decision:**
+  - **Basket lines:** '{qty} ×' sits beside the name, and the name has the whole width of the row; the +/− steppers stay beside the row. '@ £unit' and the line gross share the line under the name. When both can't fit, the gross wraps under '@ £unit', still right-aligned. A name wraps only between words (`overflow-wrap: break-word`, no automatic hyphenation). '@ £unit' and the gross never split. Before, the gross had a column of its own; from £100.00 that left the name about 105 px beside the steppers, and it split mid-word ('Glenmorangi' / 'e'). The Pay screen's Order list uses the same row.
+  - **A failed re-pricing:** while the basket store has a pricing `error`, its `view` belongs to the last basket that was priced, not to this one. The till keeps the basket's item count and badges but does not show the old lines or total:
+    - the total reads "Unavailable" (the phone bar: "Total unavailable"), and the lines area says the lines show again once the basket is priced;
+    - Pay is disabled until a pricing works;
+    - an add is announced as "{name} added. {n} items. The total could not be worked out.";
+    - the banner "The basket could not be updated." says why, with **Try again**.
+    Pay re-prices anyway (D-011), so nothing could be charged at the old figure. This is about what staff read out to the customer.
+  - **Every add is announced:** the till's live region renders its text keyed by an add counter. An add whose text matches the last one (an add after a void) still changes the region and is read out. A void clears the region, since the last add's count and total no longer hold (the void has its toast).
+  - **Forced colours (Windows High Contrast):** added to D-135's list. The till's choice groups (the Void line, Name / Table) and the refund's Cash / Card and Return to stock / Waste mark the chosen option with the system `Highlight` colour. The PIN keypad's filled dots use `CanvasText`. Forced colours drop the backgrounds, shadows and gradients that showed them before.
+  - **Focus stays on the page (D-135):**
+    - **Settings:** saving no longer remounts the form (it was keyed on `updatedAt`). The fields show the values as saved (spaces collapsed, the prefix in capitals). Focus stays on Save settings, or on the field where Enter was pressed, including after a Manager PIN override.
+    - **Pay:** the tender that covers the bill goes with the tender keys while the sale is saved. When that save fails, focus moves to **Try again**. On success, the next screen takes focus as before (D-136).
+    - **Till:** the pricing banner's **Try again** and the catalogue's **Reload products** remove themselves when they work. Focus moves to `<main>`, or into the open basket sheet.
+    - **Backup:** the file input is not natively disabled while a file is checked. It is `aria-disabled` and ignores clicks and new files, so it keeps focus when a keyboard user picks a file.
+  - **Storage failures:** a failure of IndexedDB or Dexie (by its error name: UnknownError, QuotaExceededError, AbortError, DatabaseClosedError and the like) shows "The till couldn’t use this device’s storage." rather than its technical text. For example, "Sale not saved: The till couldn’t use this device’s storage." The original error goes to the console. An AppError, and any other error, keeps its own message.
+- **Why:** Staff read the basket back to the customer, so names split mid-word and a stale total beside the new item count were both hard to trust. The rest left a keyboard, screen-reader or high-contrast user without their place, without feedback, or unable to see what was chosen.

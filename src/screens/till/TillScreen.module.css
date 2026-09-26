@@ -235,6 +235,17 @@
   );
 }
 
+/* The basket could not be priced (D-138): words, not a figure, on two short lines so the item
+   count keeps its room. */
+.sheetSummary .sheetTotalUnavailable {
+  max-width: 7.5em;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+  text-align: right;
+}
+
 .sheetContext {
   overflow: hidden;
   color: var(--color-text-muted);

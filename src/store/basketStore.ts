@@ -26,7 +26,7 @@
  *   the basket succeeds: the next change, or retryDraftSave ('Try again').
  */
 import { create } from 'zustand';
-import { isAppError } from '../data/errors';
+import { errorMessage } from '../app/errors';
 import type { BasketLine } from '../data/types';
 import { EMPTY_BASKET, addProduct as addProductRule, type BasketState } from '../rules/basket';
 import { MAX_LINE_QTY } from '../rules/money';
@@ -93,10 +93,6 @@ let pricingSeq = 0;
 /** Numbers draft saves, so only the latest save's outcome sets or clears draftError. */
 let draftSeq = 0;
 
-function describe(error: unknown): string {
-  if (isAppError(error)) return error.message;
-  return error instanceof Error ? error.message : String(error);
-}
 
 /**
  * What the till shows: while a sale payment has tenders, the basket is locked and the customer is
@@ -160,7 +156,7 @@ export const useBasketStore = create<BasketStoreState>()((set, get) => {
       const view = await viewBasket(getCtx(), basket);
       if (seq === pricingSeq) set({ view: withFrozenPricing(view), pricing: false, error: null });
     } catch (error) {
-      if (seq === pricingSeq) set({ pricing: false, error: describe(error) });
+      if (seq === pricingSeq) set({ pricing: false, error: errorMessage(error) });
     }
   }
 
@@ -175,7 +171,7 @@ export const useBasketStore = create<BasketStoreState>()((set, get) => {
       if (seq === draftSeq) set({ draftError: null });
       return true;
     } catch (error) {
-      if (seq === draftSeq) set({ draftError: describe(error) });
+      if (seq === draftSeq) set({ draftError: errorMessage(error) });
       return false;
     }
   }

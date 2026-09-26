@@ -24,7 +24,7 @@ export {
   type TextAreaFieldProps,
   type TextFieldProps,
 } from './FormField';
-export { keepFocusWhenRemoved } from './focus';
+export { isFocusLost, keepFocusWhenRemoved } from './focus';
 export { useDebouncedValue, useIsWide, useMediaQuery, WIDE_QUERY } from './hooks';
 export { Modal, type ModalProps } from './Modal';
 export { MoneyText, type MoneyTextProps } from './MoneyText';

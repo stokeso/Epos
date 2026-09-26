@@ -297,8 +297,8 @@ test('Lock from the keyboard puts focus on the PIN keypad, so the login screen i
   await page.waitForURL(/#\/till$/);
   await expect(page.getByTestId('current-staff')).toHaveText(STAFF.name);
 
-  // A reload lands on the keypad too; Tab from it reaches its first key.
-  await page.reload();
+  // Tab from the keypad reaches its first key (D-132: Enter there types 1).
+  await lock(page);
   await expect(keypad).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(keypad.getByRole('button', { name: '1', exact: true })).toBeFocused();

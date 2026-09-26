@@ -28,7 +28,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { OpenPeriodDialog, openDocument, requirePermission } from '../../app';
-import { Banner, Button, Screen, useIsWide } from '../../components';
+import { Banner, Button, isFocusLost, Screen, useIsWide } from '../../components';
 import type { Sale, Tender } from '../../data/types';
 import { formatPence } from '../../rules/money';
 import type { TenderRequest } from '../../rules/tender';
@@ -82,6 +82,8 @@ export function PayScreen() {
   /** Double-tap guard (D-134): `resting` drives the panel (pointer-events), the ref the handlers. */
   const [resting, setResting] = useState(true);
   const rest = useRef({ active: true, timer: 0 });
+  /** The finish block (Complete sale / Try again), which replaces the tender keys once the amount is covered. */
+  const finishRef = useRef<HTMLDivElement>(null);
 
   /** Starts (or restarts) the rest after which the tender keys take taps again. */
   const startRest = (): void => {
@@ -122,6 +124,14 @@ export function PayScreen() {
       }, 0);
     };
   }, []);
+
+  // A tender that covers the amount replaces the tender keys, the focused one included, with the
+  // finish block. When the save then fails nothing else takes focus (on success the next screen
+  // does): put it on Try again, scrolled into view, never leave it on <body> (D-135, D-138).
+  const saveFailedNow = error !== null && session !== null && session.tender.complete;
+  useEffect(() => {
+    if (saveFailedNow && isFocusLost()) finishRef.current?.querySelector<HTMLButtonElement>('[data-finish-action]')?.focus();
+  }, [saveFailedNow]);
 
   /** Commits a complete session and opens its receipt (architecture §5.1 steps 4–5). */
   const commit = async (current: PaySession): Promise<void> => {
@@ -299,7 +309,7 @@ export function PayScreen() {
             </Banner>
           )}
           {tender.complete ? (
-            <div className={`${styles.finish} ${resting ? styles.resting : ''}`}>
+            <div ref={finishRef} className={`${styles.finish} ${resting ? styles.resting : ''}`}>
               {saveFailed ? (
                 <Banner tone="danger" title={error} testId="pay-error">
                   {tendersTaken
@@ -323,7 +333,7 @@ export function PayScreen() {
                   </p>
                 </div>
               )}
-              <Button variant="primary" size="xl" block onClick={onComplete} busy={saving} disabled={noPeriod && !saveFailed}>
+              <Button variant="primary" size="xl" block onClick={onComplete} busy={saving} disabled={noPeriod && !saveFailed} data-finish-action>
                 {saveFailed ? 'Try again' : 'Complete sale'}
               </Button>
             </div>

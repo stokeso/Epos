@@ -765,3 +765,26 @@ test('Cash keeps keyboard focus after a part cash tender clears the keypad, and 
   await expect(cash).toBeEnabled();
   await expect(cash).toBeFocused();
 });
+
+test('when the tender that covers the bill can’t be saved, focus goes to Try again, not <body> (spec §8, D-034, D-135, D-138)', async ({ page }) => {
+  await setUpTrading(page);
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await openPay(page);
+  await page.waitForTimeout(500); // Pay's 400 ms rest after opening (D-134)
+
+  // The £5 key covers the bill, so it goes with the tender keys while the sale is saved.
+  await setPeriodClosedBehindTheApp(page, true);
+  await button(page, '£5').focus();
+  await page.keyboard.press('Enter');
+  const failure = page.getByTestId('pay-error');
+  await expect(failure).toContainText(/^Sale not saved: /);
+  const tryAgain = button(page, 'Try again');
+  await expect(tryAgain).toBeFocused();
+
+  // Enter there tries again; once the period is back, it saves the sale.
+  await setPeriodClosedBehindTheApp(page, false);
+  await page.waitForTimeout(500);
+  await page.keyboard.press('Enter');
+  await expect(button(page, 'New sale')).toBeVisible();
+  await expect.poll(async () => (await sales(page)).length).toBe(1);
+});

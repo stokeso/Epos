@@ -157,11 +157,19 @@
   box-shadow: inset 4px 0 0 var(--color-brand-800);
 }
 
+/* '{qty} ×' beside the name, which has the whole width of the row; '@ £unit' and the gross share
+   the line under it (D-138). With the +/− steppers beside it, a column of its own left the name
+   about 105 px once the gross reached £100.00, and words split mid-word. */
 .lineBody {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'qty name'
+    '. figures';
+  align-items: baseline;
+  align-content: center;
+  column-gap: var(--space-3);
+  row-gap: 2px;
   flex: 1 1 auto;
   min-width: 0;
   min-height: var(--touch-lg);
@@ -182,28 +190,42 @@
 }
 
 .qty {
+  grid-area: qty;
   font-weight: var(--font-weight-bold);
   min-width: 2.6em;
 }
 
-.lineMain {
-  display: flex;
-  flex-direction: column;
+/* A word is split only when it can't fit on a line by itself (no automatic hyphenation, which
+   would split words that could move whole to the next line). */
+.lineName {
+  grid-area: name;
   min-width: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: break-word;
 }
 
-.lineName {
-  font-weight: var(--font-weight-medium);
-  overflow-wrap: anywhere;
+/* '@ £unit' left, the gross right; when both can't fit on one line the gross wraps under,
+   still right-aligned, and neither splits inside itself. */
+.lineFigures {
+  grid-area: figures;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: var(--space-3);
+  min-width: 0;
 }
 
 .lineUnit {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  white-space: nowrap;
 }
 
 .lineAmount {
+  margin-left: auto;
   font-weight: var(--font-weight-bold);
+  white-space: nowrap;
 }
 
 .lineTrailing {
@@ -239,6 +261,13 @@
 }
 
 .totalLabel {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+/* The basket could not be priced (D-138): words, not a figure. */
+.totalUnavailable {
+  color: var(--color-danger);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
 }

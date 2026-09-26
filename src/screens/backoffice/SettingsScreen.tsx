@@ -34,7 +34,9 @@ export function SettingsScreen() {
       <PermissionNote action="manageMembersStaffSettings" />
       {load.error !== null && <Banner tone="danger">{load.error}</Banner>}
       {settings === undefined && load.error === null && <p className={styles.muted}>Loading settings…</p>}
-      {settings !== undefined && <SettingsForm key={settings.updatedAt} settings={settings} onSaved={load.reload} />}
+      {/* Not keyed on updatedAt: remounting the form after a save would take the focused control
+          (Save settings, a field where Enter was pressed) away and drop focus to <body> (D-138). */}
+      {settings !== undefined && <SettingsForm key={settings.deviceId} settings={settings} onSaved={load.reload} />}
     </Screen>
   );
 }
@@ -70,6 +72,12 @@ function SettingsForm({ settings, onSaved }: { settings: Settings; onSaved: () =
     }
     const saved = await form.run('manageMembersStaffSettings', (auth) => saveSettings(getCtx(), auth, input));
     if (saved === null) return;
+    // The form stays mounted (focus stays put): show the values as saved (trimmed, prefix in capitals).
+    setClubName(saved.clubName);
+    setReceiptFooter(saved.receiptFooter);
+    setAutoLockText(String(saved.autoLockMinutes));
+    setDiscountText(String(saved.memberDiscountPercent));
+    setDevicePrefix(saved.devicePrefix);
     // The header name, auto-lock and member discount all read the cached settings.
     await useAppStore.getState().refreshSettings();
     void useBasketStore.getState().refresh();

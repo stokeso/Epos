@@ -99,3 +99,15 @@
   min-height: var(--touch-lg);
   font-size: var(--font-size-lg);
 }
+
+/* Forced colours (Windows High Contrast) drop the background that shows the chosen option, and the
+   native radio is hidden: mark it with the system Highlight (D-138). */
+@media (forced-colors: active) {
+  .group .checked,
+  .group .checked:hover {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+}

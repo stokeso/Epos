@@ -11,6 +11,7 @@ import {
   STAFF,
   SUPERVISOR,
   approveOverride,
+  chosenOptionStandsOut,
   enterMoney,
   expectMoney,
   expectNoHorizontalScroll,
@@ -694,4 +695,24 @@ test('a refused report date range moves focus to the invalid date, which carries
   await expect(to).toBeFocused();
   await expect(to).toHaveAttribute('aria-invalid', 'true');
   await expect(to).toHaveAccessibleDescription(/Choose a valid date range: the end date must be on or after the start date/);
+});
+
+test('forced colours (Windows High Contrast) keep the chosen Cash or Card and Return to stock or Waste visible (D-138)', async ({ page }) => {
+  await setUpTrading(page);
+  await addProduct(page, 'Draught', 'Club Bitter');
+  await payExact(page);
+  const prefix = await devicePrefix(page);
+  await navigate(page, 'Refunds');
+  await findReceipt(page, receiptNumber(prefix, 1));
+  await button(page, 'Increase Club Bitter').click();
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
+
+  const refundBy = page.getByRole('group', { name: 'Refund by' });
+  const stock = page.getByRole('group', { name: 'Stock for Club Bitter' });
+  await expect.poll(() => chosenOptionStandsOut(refundBy)).toBe(true);
+  await expect.poll(() => chosenOptionStandsOut(stock)).toBe(true);
+  await refundBy.getByRole('radio', { name: 'Card' }).check();
+  await stock.getByRole('radio', { name: 'Waste' }).check();
+  await expect.poll(() => chosenOptionStandsOut(refundBy)).toBe(true);
+  await expect.poll(() => chosenOptionStandsOut(stock)).toBe(true);
 });

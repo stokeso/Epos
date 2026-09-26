@@ -19,17 +19,19 @@ export interface BasketLineRowProps {
 /**
  * One basket line: '{qty} × {name}', '@ £unit' and the line gross. Deal savings, the member
  * discount and the deposit are separate rows in BasketPanel (D-017, D-023), so the row shows
- * the gross, like the receipt (D-107).
+ * the gross, like the receipt (D-107). The name has the whole width of the row, with '@ £unit'
+ * and the gross on the line under it, so the +/− steppers beside it never squeeze the name into
+ * a column that splits words (D-138).
  */
 export function BasketLineRow({ line, selected = false, onSelect, trailing, disabled = false }: BasketLineRowProps) {
   const content = (
     <>
       <span className={`${styles.qty} tabular`}>{line.qty} ×</span>
-      <span className={styles.lineMain}>
-        <span className={styles.lineName}>{line.name}</span>
+      <span className={styles.lineName}>{line.name}</span>
+      <span className={styles.lineFigures}>
         <span className={`${styles.lineUnit} money`}>@ {formatPence(line.unitPricePence)}</span>
+        <MoneyText pence={line.grossPence} className={styles.lineAmount} />
       </span>
-      <MoneyText pence={line.grossPence} className={styles.lineAmount} />
     </>
   );
   return (

@@ -18,6 +18,7 @@ import { getCtx, useAppStore } from '../../store/appStore';
 import { useBasketStore } from '../../store/basketStore';
 import { usePayStore } from '../../store/payStore';
 import { useSessionStore } from '../../store/sessionStore';
+import { useUiStore } from '../../store/uiStore';
 import styles from './LoginScreen.module.css';
 
 export const LOGIN_REJECTED_MESSAGE = 'PIN not recognised';
@@ -35,10 +36,13 @@ export function LoginScreen() {
 
   useEffect(() => {
     document.title = 'Log in · Club EPOS';
-    // Lock (or auto-lock) took the focused control away with the shell, and on start-up nothing
-    // has focus: start on the keypad group, as the override dialog does (D-132). Screen readers
-    // announce 'Enter your PIN', and Enter there submits the PIN typed (D-137).
-    if (isFocusLost()) rootRef.current?.querySelector<HTMLElement>('[role="group"]')?.focus({ preventScroll: true });
+    // Lock, auto-lock or a backup import took the focused control away with the shell: start on
+    // the keypad group, as the override dialog does (D-132). Screen readers announce 'Enter your
+    // PIN', and Enter there submits the PIN typed (D-137). On start-up (no lock yet) the page
+    // opens as any page does, so a touch till doesn't open on a focus ring; digits and Enter
+    // work there anyway (D-073).
+    const afterLock = useUiStore.getState().lockCount > 0;
+    if (afterLock && isFocusLost()) rootRef.current?.querySelector<HTMLElement>('[role="group"]')?.focus({ preventScroll: true });
   }, []);
 
   const submit = async (pin: string): Promise<void> => {

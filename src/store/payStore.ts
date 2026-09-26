@@ -6,6 +6,7 @@
  * until complete().
  */
 import { create } from 'zustand';
+import { errorMessage } from '../app/errors';
 import { isAppError } from '../data/errors';
 import { pressMoneyKey, type MoneyKey } from '../rules/money';
 import type { TenderRequest } from '../rules/tender';
@@ -70,10 +71,6 @@ export interface PayStoreState {
   clearError(): void;
 }
 
-function describe(error: unknown): string {
-  if (isAppError(error)) return error.message;
-  return error instanceof Error ? error.message : String(error);
-}
 
 export const usePayStore = create<PayStoreState>()((set, get) => ({
   session: null,
@@ -132,7 +129,7 @@ export const usePayStore = create<PayStoreState>()((set, get) => ({
       return completed;
     } catch (error) {
       const what = session.kind === 'deposit' ? 'Deposit' : 'Sale';
-      set({ committing: false, error: `${what} not saved: ${describe(error)}` });
+      set({ committing: false, error: `${what} not saved: ${errorMessage(error)}` });
       // The period was closed elsewhere: the header and the till should say so.
       if (isAppError(error) && error.code === 'NO_OPEN_PERIOD') void useAppStore.getState().refreshPeriod();
       return null;

@@ -294,3 +294,25 @@ export async function expectNoHorizontalScroll(page: Page): Promise<void> {
   expect(overflow.main, 'main content scrolls horizontally').toBeLessThanOrEqual(0);
   expect(overflow.dialog, 'the open dialog scrolls horizontally').toEqual([]);
 }
+
+// ---------------------------------------------------------------------------
+// Forced colours (Windows High Contrast)
+// ---------------------------------------------------------------------------
+
+/**
+ * Under `page.emulateMedia({ forcedColors: 'active' })`: true when the checked radio in `scope`
+ * is drawn differently from every other option and from the page (D-135, D-138). Forced colours
+ * replace author backgrounds with the page's Canvas colour, so a chosen option marked only by a
+ * background, shadow or gradient looks exactly like the others.
+ */
+export function chosenOptionStandsOut(scope: Locator): Promise<boolean> {
+  return scope.evaluate((root) => {
+    const canvas = getComputedStyle(document.body).backgroundColor;
+    const radios = [...root.querySelectorAll<HTMLInputElement>('input[type="radio"]')];
+    const background = (radio: HTMLInputElement) => getComputedStyle(radio.closest('label') ?? radio).backgroundColor;
+    const chosen = radios.filter((radio) => radio.checked).map(background);
+    const others = radios.filter((radio) => !radio.checked).map(background);
+    const [mark] = chosen;
+    return chosen.length === 1 && mark !== undefined && mark !== canvas && !others.includes(mark);
+  });
+}
