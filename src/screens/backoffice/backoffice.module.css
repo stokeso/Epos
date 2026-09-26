@@ -1,0 +1,643 @@
+/* Shared back-office styles (panels, lists, badges, form layout). Tokens: src/app/theme.css. */
+
+.backLink {
+  padding-left: var(--space-2);
+  padding-right: var(--space-3);
+  color: var(--color-brand-800);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- panels */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.panelHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.panelHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+
+.panelTitle {
+  font-size: var(--font-size-lg);
+}
+
+.panelDescription {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.panelActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------------------------------------------------------------- toolbar */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.toolbar > * {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.toolbarSummary {
+  flex: 0 0 auto !important;
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-min);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- lists */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.list > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.gridList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+@media (min-width: 900px) {
+  .gridList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-md);
+}
+
+.groupCount {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-normal);
+  font-size: var(--font-size-sm);
+}
+
+/* A whole-row button (edit on tap). */
+.rowButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  font: inherit;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.rowButton:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.rowButton:active {
+  background: var(--color-surface-sunken);
+}
+
+.rowInactive {
+  background: var(--color-surface-sunken);
+}
+
+.rowInactive .rowTitle {
+  color: var(--color-text-muted);
+}
+
+/* A plain row inside a bordered list (with its own buttons). */
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4);
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.rowTitleLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-width: 0;
+}
+
+.rowTitle {
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.rowMeta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.rowEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  margin-left: auto;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.borderedList {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.empty {
+  padding: var(--space-5) var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.small {
+  font-size: var(--font-size-sm);
+}
+
+.negative {
+  color: var(--color-danger);
+}
+
+/* ---------------------------------------------------------------- badges */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.badge_success {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.badge_warning {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.badge_danger {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.badge_info {
+  border-color: var(--color-info-border);
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.badge_brand {
+  border-color: var(--color-brand-800);
+  background: var(--color-brand-800);
+  color: var(--color-on-brand);
+}
+
+/* ---------------------------------------------------------------- swatches */
+
+.swatch {
+  display: inline-block;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+}
+
+.swatch_sm {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.swatch_lg {
+  width: 44px;
+  height: 44px;
+}
+
+/* ---------------------------------------------------------------- forms */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 600px) {
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .span2 {
+    grid-column: 1 / -1;
+  }
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.formSectionTitle {
+  font-size: var(--font-size-md);
+}
+
+.fieldError {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.input {
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+}
+
+.input:focus-visible {
+  outline-offset: 1px;
+  border-color: var(--focus-ring);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+  box-shadow: inset 0 0 0 1px var(--color-danger);
+}
+
+.input:disabled {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+}
+
+/* Colour field */
+.colourRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.colourPicker {
+  flex: none;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  padding: 3px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.colourText {
+  flex: 0 1 8.5rem;
+  min-width: 7rem;
+  width: auto;
+  font-family: var(--font-mono);
+  text-transform: lowercase;
+}
+
+.colourPreview {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 1 9rem;
+  min-width: 0;
+  min-height: 64px;
+  max-width: 14rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  line-height: 1.2;
+}
+
+/* Wraps like the till's ProductButton name (up to three lines), so the preview matches the button. */
+.colourPreviewName {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  font-weight: var(--font-weight-bold);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+/* Full opacity, as on the till's ProductButton, so the preview shows the real contrast. */
+.colourPreviewDetail {
+  font-size: var(--font-size-sm);
+}
+
+/* Prefix/suffix field */
+.affix {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--touch-min);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.affix:focus-within {
+  border-color: var(--focus-ring);
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.affixInvalid {
+  border-color: var(--color-danger);
+  box-shadow: inset 0 0 0 1px var(--color-danger);
+}
+
+.affixDisabled {
+  background: var(--color-surface-sunken);
+}
+
+.affixText {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.affixInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: 0 var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+}
+
+.affixInput:focus-visible {
+  outline: none;
+}
+
+.affixInput:disabled {
+  color: var(--color-text-muted);
+}
+
+/* Segmented radio tiles */
+.choiceGroup {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.choiceLegend {
+  padding: 0;
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-weight-bold);
+}
+
+.choiceOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-2);
+}
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-height: var(--touch-min);
+  padding: var(--space-3);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.choice:hover {
+  background: var(--color-surface-hover);
+}
+
+.choiceSelected {
+  border-color: var(--color-brand-800);
+  background: var(--color-brand-50);
+  box-shadow: inset 0 0 0 1px var(--color-brand-800);
+}
+
+.choice:has(:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.choiceRadio {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  accent-color: var(--color-brand-800);
+}
+
+.choiceRadio:focus-visible {
+  outline: none;
+}
+
+.choiceText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.choiceLabel {
+  font-weight: var(--font-weight-bold);
+}
+
+.choiceHint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.choiceGroup:disabled .choice {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Definition lists (read-only facts) */
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--color-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 599px) {
+  .panel {
+    padding: var(--space-4);
+  }
+
+  .row {
+    padding: var(--space-3);
+  }
+}
+
+/* A footer button pinned to the left of a dialog footer (e.g. Delete). */
+.footerStart {
+  margin-right: auto;
+}
+
+@media (max-width: 599px) {
+  .footerStart {
+    flex-basis: 100% !important;
+    margin-right: 0;
+  }
+}
+
+/* Title-row actions share the row on a phone (the back link keeps its size). */
+@media (max-width: 599px) {
+  .titleAction {
+    flex: 1 1 auto;
+  }
+}
+
+/* A dialog footer button that takes a whole row on a phone. */
+@media (max-width: 599px) {
+  .footerFull {
+    flex-basis: 100% !important;
+  }
+}

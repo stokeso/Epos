@@ -1,0 +1,185 @@
+/* Members screen (spec §6.5). Tokens: src/app/theme.css. */
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 900px) {
+  .panel {
+    padding: var(--space-5);
+  }
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+/* One member in a result list: number chip, name, status, chevron. */
+.member {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.number {
+  flex: none;
+  min-width: 4.5rem;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-brand-50);
+  border: 1px solid var(--color-brand-200);
+  color: var(--color-brand-900);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.pillInactive {
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+}
+
+/* Inactive members: same shape as the search results, muted. */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.rowButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--touch-lg);
+  padding: var(--space-2) var(--space-4);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+}
+
+.rowButton:hover {
+  background: var(--color-surface-hover);
+}
+
+.rowButton .number {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-muted);
+}
+
+.rowButton .name {
+  color: var(--color-text-muted);
+}
+
+/* Form dialog */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.nameRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 600px) {
+  .nameRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.numberField input {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  max-width: 14rem;
+}
+
+.statusLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-sm);
+}
+
+.footerSpacer {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 599px) {
+  .footerSpacer {
+    display: none;
+  }
+}

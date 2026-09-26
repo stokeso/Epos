@@ -11,9 +11,14 @@ import { openPeriodId, validOrThrow } from './shared';
 
 /** The Settings row; throws AppError('NOT_INITIALISED') before first-run setup. */
 export async function getSettings(ctx: ServiceContext): Promise<Settings> {
-  const settings = await ctx.repos.settings.get();
+  const settings = await findSettings(ctx);
   if (settings === undefined) throw new AppError('NOT_INITIALISED', 'The till has not been set up yet');
   return settings;
+}
+
+/** The Settings row, or undefined before first-run setup (the app store's cache reads this). */
+export async function findSettings(ctx: ServiceContext): Promise<Settings | undefined> {
+  return ctx.repos.settings.get();
 }
 
 /**

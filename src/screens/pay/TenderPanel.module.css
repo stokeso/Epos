@@ -1,0 +1,172 @@
+/*
+ * Phones and narrow tablets: quick cash, Exact / Cash / Card in one row, any notice, then the
+ * keypad (a column, so a missing notice leaves no gap).
+ * >= 1100 px: the keypad on the left with the tender keys stacked beside it, like a till, and any
+ * notice under the tender keys.
+ * Nothing above the tender keys changes height when a tender is taken or refused (D-134).
+ */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Taps are ignored briefly after Pay opens and after each tender (double-tap guard, D-134). */
+.resting {
+  pointer-events: none;
+}
+
+.notice {
+  grid-area: notice;
+  min-width: 0;
+}
+
+.quick {
+  grid-area: quick;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.keypad {
+  grid-area: keypad;
+  min-width: 0;
+}
+
+.tenders {
+  grid-area: tenders;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* Quick cash: a thin note-coloured band along the top of each button. */
+.quick .note {
+  position: relative;
+  overflow: hidden;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.note::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: var(--note-colour, var(--color-border-strong));
+}
+
+.note5 {
+  --note-colour: #0f766e;
+}
+
+.note10 {
+  --note-colour: #c2410c;
+}
+
+.note20 {
+  --note-colour: #7e22ce;
+}
+
+.note50 {
+  --note-colour: #b91c1c;
+}
+
+/* Exact / Cash / Card: a name with the amount it will tender underneath. */
+.tenders .tenderKey {
+  flex-direction: column;
+  gap: 2px;
+  min-height: 72px;
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+}
+
+.tenderName {
+  font-size: var(--font-size-lg);
+  line-height: 1.1;
+}
+
+.tenderAmount {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.tenders .cash {
+  --btn-bg: var(--color-brand-50);
+  --btn-border: var(--color-brand-700);
+  --btn-fg: var(--color-brand-900);
+  --btn-bg-hover: var(--color-brand-100);
+  --btn-bg-active: var(--color-brand-200);
+}
+
+@media (min-width: 1100px) {
+  .panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+    grid-template-areas:
+      'keypad quick'
+      'keypad tenders'
+      'keypad notice';
+    grid-template-rows: auto auto 1fr;
+    column-gap: var(--space-5);
+    row-gap: var(--space-3);
+    align-items: start;
+  }
+
+  .quick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quick .note {
+    min-height: 64px;
+  }
+
+  .tenders {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .tenders .tenderKey {
+    flex-direction: row;
+    justify-content: space-between;
+    min-height: 76px;
+    padding: 0 var(--space-4);
+  }
+
+  .tenderName {
+    font-size: var(--font-size-xl);
+  }
+
+  .tenderAmount {
+    font-size: var(--font-size-md);
+  }
+}
+
+@media (max-width: 599px) {
+  .quick .note {
+    min-height: 52px;
+    font-size: var(--font-size-lg);
+  }
+
+  .tenders .tenderKey {
+    min-height: 64px;
+  }
+
+  /* Slightly shorter keys so the whole keypad fits under the tender keys on a phone. */
+  .keypad .keypadRoot {
+    --key-height: 54px;
+  }
+
+  .tenderName {
+    font-size: var(--font-size-md);
+  }
+
+  .tenderAmount {
+    font-size: var(--font-size-xs);
+  }
+}

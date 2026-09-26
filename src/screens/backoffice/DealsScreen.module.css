@@ -1,0 +1,232 @@
+/* Deals list */
+.deals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+@media (min-width: 900px) {
+  .deals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.deal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.dealInactive {
+  background: var(--color-surface-sunken);
+}
+
+.dealHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.rule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: 76px;
+  min-height: 52px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  background: var(--color-brand-900);
+  color: var(--color-on-brand);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.dealInactive .rule {
+  background: var(--color-text-muted);
+}
+
+.dealTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dealName {
+  font-size: var(--font-size-lg);
+  overflow-wrap: anywhere;
+}
+
+.dealMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin-top: 2px;
+}
+
+.products {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.productsLabel {
+  font-weight: var(--font-weight-bold);
+}
+
+.dealActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+/* Deal form */
+.sentence {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-brand-50);
+  color: var(--color-brand-900);
+  font-weight: var(--font-weight-medium);
+  box-shadow: inset 0 0 0 1px var(--color-brand-100);
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.pickerLegend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  font-weight: var(--font-weight-bold);
+}
+
+.pickerLegend + * {
+  clear: both;
+}
+
+.pickerCount {
+  margin-left: var(--space-2);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.pickerList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 600px) {
+  .pickerList {
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: var(--space-1);
+  }
+}
+
+.pickerGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pickerGroupName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.pickerItems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+}
+
+@media (min-width: 600px) {
+  .pickerItems {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pickerItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--touch-min);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.pickerItem:hover {
+  border-color: var(--color-border-strong);
+}
+
+.pickerItemOn {
+  border-color: var(--color-brand-700);
+  background: var(--color-brand-50);
+}
+
+.pickerItem:has(:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.pickerCheck {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--color-brand-800);
+}
+
+.pickerCheck:focus-visible {
+  outline: none;
+}
+
+.pickerName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pickerPrice {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

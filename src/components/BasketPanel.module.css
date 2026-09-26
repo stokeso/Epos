@@ -1,0 +1,260 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.heading {
+  font-size: var(--font-size-lg);
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.badges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-2);
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+}
+
+.badgeLabel {
+  flex: none;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badgeValue {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: var(--font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Booking names run to 60 characters and the date tells similar ones apart: wrap, never cut. */
+.badgeBooking .badgeValue {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.badgeMember {
+  background: var(--color-brand-50);
+  border: 1px solid var(--color-brand-200);
+}
+
+.badgeMember .badgeLabel {
+  background: var(--color-brand-800);
+  color: #ffffff;
+}
+
+.badgeBooking {
+  background: #f5f0ff;
+  border: 1px solid #d7c8f5;
+}
+
+.badgeBooking .badgeLabel {
+  background: #5b21b6;
+  color: #ffffff;
+}
+
+.badgeTab {
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+}
+
+.badgeTab .badgeLabel {
+  background: var(--color-warning);
+  color: #ffffff;
+}
+
+.badgeRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  position: relative;
+}
+
+/* 48 px hit area */
+.badgeRemove::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.badgeRemove:hover:not(:disabled) {
+  background: rgb(0 0 0 / 0.07);
+  color: var(--color-text);
+}
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  /* Room above the first line and below the last for the focus ring, which the scroller would clip. */
+  padding: calc(var(--focus-ring-width) + var(--focus-ring-offset)) var(--space-2);
+}
+
+.empty {
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.lines,
+.adjustments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.line {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.lineSelected {
+  background: var(--color-brand-50);
+  box-shadow: inset 4px 0 0 var(--color-brand-800);
+}
+
+.lineBody {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--touch-lg);
+  padding: var(--space-2);
+}
+
+.lineButton {
+  border: none;
+  background: transparent;
+  text-align: left;
+  border-radius: var(--radius-sm);
+}
+
+.lineButton:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+}
+
+.qty {
+  font-weight: var(--font-weight-bold);
+  min-width: 2.6em;
+}
+
+.lineMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lineName {
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.lineUnit {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.lineAmount {
+  font-weight: var(--font-weight-bold);
+}
+
+.lineTrailing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-right: var(--space-1);
+}
+
+.adjustments {
+  padding: var(--space-2) var(--space-2) var(--space-3);
+}
+
+.adjustment {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  font-size: var(--font-size-sm);
+}
+
+.footer {
+  border-top: 2px solid var(--color-border);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  background: var(--color-surface);
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.totalLabel {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+/* Forced colours: the selected line (the Void target) keeps a visible marker without its background. */
+@media (forced-colors: active) {
+  .lineSelected {
+    outline: 3px solid Highlight;
+    outline-offset: -3px;
+  }
+}
+
+/* The panel takes focus only from script, when a focused control in it went away (D-135): draw the
+   ring inside its edge, where the side panel and the sheet can't clip it. */
+.panel:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}

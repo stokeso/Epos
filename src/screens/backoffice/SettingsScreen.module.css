@@ -1,0 +1,75 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+.prefix input {
+  max-width: 12rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 599px) {
+  .actions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* An 80 mm till-roll look for the preview. */
+.receipt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  background: #fffdf7;
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  color: #1a1a1a;
+}
+
+.receiptClub {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  overflow-wrap: anywhere;
+}
+
+.receiptRule {
+  align-self: stretch;
+  margin: var(--space-2) 0;
+  border-top: 2px dotted var(--color-border-strong);
+}
+
+.receiptFooter {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  min-height: 1.4em;
+}
+
+.deviceId {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}

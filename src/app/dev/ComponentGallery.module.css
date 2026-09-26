@@ -1,0 +1,66 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-2);
+}
+
+.basketDemo,
+.basketDemoEmpty {
+  height: 560px;
+  max-width: var(--basket-panel-width);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.basketDemoEmpty {
+  height: 280px;
+}
+
+.keypads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.darkBox {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-900);
+  color: #ffffff;
+  --focus-ring: #fcd34d;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 520px;
+}
+
+@media (max-width: 599px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .basketDemo {
+    max-width: none;
+  }
+}

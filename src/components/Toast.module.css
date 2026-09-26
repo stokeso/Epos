@@ -1,0 +1,54 @@
+.region {
+  position: fixed;
+  top: calc(var(--header-height) + var(--space-3));
+  left: 50%;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: min(480px, calc(100vw - 2 * var(--space-4)));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.toast {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  border-left: 5px solid var(--color-info-border);
+  background: #1f2a24;
+  color: #ffffff;
+  font-weight: var(--font-weight-medium);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  animation: toastIn var(--duration) var(--ease-out);
+}
+
+.success {
+  border-left-color: #4ade80;
+}
+
+.warning {
+  border-left-color: #fbbf24;
+}
+
+.danger {
+  border-left-color: #f87171;
+  background: #5b1a14;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}

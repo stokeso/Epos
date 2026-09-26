@@ -1,0 +1,277 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+}
+
+.header {
+  --focus-ring: #fcd34d;
+
+  position: relative;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  height: var(--header-height);
+  padding: 0 var(--space-3);
+  padding-left: max(var(--space-3), env(safe-area-inset-left));
+  padding-right: max(var(--space-3), env(safe-area-inset-right));
+  background: var(--color-brand-900);
+  color: var(--color-on-brand);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.2);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  color: inherit;
+  text-decoration: none;
+  flex: 0 1 auto;
+}
+
+.logo {
+  flex: none;
+  max-width: none;
+}
+
+.clubName {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.period {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.periodOpen {
+  background: rgb(134 239 172 / 0.16);
+  color: #d9fbe3;
+}
+
+.periodClosed {
+  background: rgb(252 211 77 / 0.18);
+  color: #fde9a6;
+}
+
+.periodDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.periodOpen .periodDot {
+  background: #4ade80;
+}
+
+/* Closed: a hollow ring, so the two states differ by shape as well as colour (WCAG 1.4.1). On a
+   phone the dot is all that shows. */
+.periodClosed .periodDot {
+  width: 12px;
+  height: 12px;
+  border: 3px solid #fbbf24;
+  background: transparent;
+}
+
+.headerSpacer {
+  flex: 1 1 auto;
+}
+
+.staff {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  line-height: 1.15;
+  margin-right: var(--space-2);
+}
+
+.staffName {
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.staffRole {
+  font-size: var(--font-size-xs);
+  color: var(--color-on-brand-muted);
+}
+
+.headerButton {
+  flex: none;
+}
+
+@media (max-width: 719px) {
+  .clubName {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .period {
+    width: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .periodText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .header {
+    gap: var(--space-1);
+    padding-left: max(var(--space-2), env(safe-area-inset-left));
+    padding-right: max(var(--space-2), env(safe-area-inset-right));
+  }
+
+  .headerSpacer {
+    display: none;
+  }
+
+  .staff {
+    flex: 1 1 auto;
+    align-items: flex-start;
+    margin: 0 var(--space-1);
+  }
+
+  .brand {
+    flex: none;
+  }
+
+  /* Icon-only on a phone; the text stays as the accessible name. */
+  .headerButton {
+    padding: 0;
+    width: var(--touch-min);
+  }
+
+  .buttonText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+.banners {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: none;
+  padding: var(--space-2) var(--page-gutter) 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  outline: none;
+}
+
+/* Navigation drawer */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.navWho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-sm);
+}
+
+.navClub {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+}
+
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.navHeading {
+  padding: 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-3) 0 var(--space-4);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.navLink svg {
+  color: var(--color-text-muted);
+}
+
+.navLink:hover {
+  background: var(--color-surface-hover);
+}
+
+.navLink[aria-current='page'] {
+  background: var(--color-brand-50);
+  color: var(--color-brand-900);
+  font-weight: var(--font-weight-bold);
+  box-shadow: inset 4px 0 0 var(--color-brand-800);
+}

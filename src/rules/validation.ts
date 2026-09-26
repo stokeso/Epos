@@ -54,9 +54,15 @@ function length(text: string): number {
 
 function lengthError(label: string, text: string, min: number, max: number): string | undefined {
   const n = length(text);
-  if (n < min) return min === 1 ? `Enter ${label}` : `${label} must be at least ${min} characters`;
-  if (n > max) return `${label} must be ${max} characters or fewer`;
+  if (n < min) return min === 1 ? `Enter ${label}` : `${subject(label)} must be at least ${min} characters`;
+  if (n > max) return `${subject(label)} must be ${max} characters or fewer`;
   return undefined;
+}
+
+/** A label as the subject that starts a message: 'a name' -> 'Name', 'the club name' -> 'Club name'. */
+function subject(label: string): string {
+  const bare = label.replace(/^(a|an|the)\s+/i, '');
+  return bare.charAt(0).toUpperCase() + bare.slice(1);
 }
 
 const isIntegerIn = (value: number, min: number, max: number): boolean => Number.isSafeInteger(value) && value >= min && value <= max;

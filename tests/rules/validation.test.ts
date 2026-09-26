@@ -430,6 +430,10 @@ describe('tab labels (D-064)', () => {
   it('checks lengths and table characters', () => {
     expect(validateTabLabel('name', 'n'.repeat(30), { openTabs }).ok).toBe(true);
     expect(errorsOf(validateTabLabel('name', 'n'.repeat(31), { openTabs }))).toHaveProperty('label');
+    // Messages start with a capital subject, not the article used by 'Enter a name'.
+    expect(errorsOf(validateTabLabel('name', 'n'.repeat(31), { openTabs })).label).toBe('Name must be 30 characters or fewer');
+    expect(errorsOf(validateTabLabel('table', 'Terrace 100', { openTabs })).label).toBe('Table must be 10 characters or fewer');
+    expect(errorsOf(validateTabLabel('name', '   ', { openTabs })).label).toBe('Enter a name');
     expect(errorsOf(validateTabLabel('name', '   ', { openTabs }))).toHaveProperty('label');
     expect(validateTabLabel('table', 'Terrace 10', { openTabs }).ok).toBe(true);
     expect(errorsOf(validateTabLabel('table', 'Terrace 100', { openTabs }))).toHaveProperty('label');

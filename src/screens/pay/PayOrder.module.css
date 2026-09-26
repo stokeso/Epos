@@ -1,0 +1,241 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.heading {
+  font-size: var(--font-size-lg);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Tab / member / booking chips */
+.context {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-2);
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+}
+
+.chipLabel {
+  flex: none;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chipValue {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--font-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A booking's name and date wrap rather than being cut (names run to 60 characters). */
+.booking .chipValue {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.member {
+  border: 1px solid var(--color-brand-200);
+  background: var(--color-brand-50);
+}
+
+.member .chipLabel {
+  background: var(--color-brand-800);
+}
+
+.booking {
+  border: 1px solid #d7c8f5;
+  background: #f5f0ff;
+}
+
+.booking .chipLabel {
+  background: #5b21b6;
+}
+
+.tab {
+  border: 1px solid var(--color-warning-border);
+  background: var(--color-warning-bg);
+}
+
+.tab .chipLabel {
+  background: var(--color-warning);
+}
+
+.lines,
+.adjustments {
+  margin: 0;
+  padding: 0 var(--space-2);
+  list-style: none;
+}
+
+.adjustments {
+  padding: var(--space-2) var(--space-4);
+}
+
+.adjustment {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  font-size: var(--font-size-sm);
+}
+
+.total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 2px solid var(--color-border);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Phones: 'Order details' disclosure */
+.disclosure {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--touch-lg);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:hover {
+  background: var(--color-surface-hover);
+}
+
+.summaryText {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.summaryTitle {
+  font-weight: var(--font-weight-bold);
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-text-muted);
+  transition: transform var(--duration) var(--ease-out);
+}
+
+.disclosure[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.disclosure[open] .summary {
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.disclosureBody {
+  padding-top: var(--space-2);
+}
+
+/* Deposit: the booking card */
+.panel.bookingCard {
+  border-color: #d7c8f5;
+  background: linear-gradient(180deg, #f8f4ff 0%, var(--color-surface) 70%);
+}
+
+.bookingBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.eyebrow {
+  color: #5b21b6;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bookingName {
+  font-size: var(--font-size-xl);
+  overflow-wrap: anywhere;
+}
+
+.bookingMeta {
+  font-weight: var(--font-weight-medium);
+}
+
+.note {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 599px) {
+  .bookingBody {
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+
+  .bookingName {
+    font-size: var(--font-size-lg);
+  }
+}

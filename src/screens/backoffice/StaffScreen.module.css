@@ -1,0 +1,26 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.avatar_manager {
+  background: var(--color-brand-800);
+  color: var(--color-on-brand);
+  box-shadow: none;
+}
+
+.avatar_supervisor {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  box-shadow: inset 0 0 0 1px var(--color-info-border);
+}

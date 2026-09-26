@@ -31,6 +31,12 @@ export interface SalePaySession {
   basket: BasketState;
   /** Frozen pricing at Pay open (D-011). */
   priced: PricedBasket;
+  /**
+   * The member discount % that `priced` used (settings at Pay open), or null with no member
+   * attached. Frozen with the pricing, so Pay labels the discount with the % actually applied
+   * even if the setting changes while the payment is open (D-011, D-135).
+   */
+  memberDiscountPercent: number | null;
   tender: TenderState;
 }
 
@@ -90,14 +96,22 @@ export async function openSalePayment(ctx: ServiceContext, basket: BasketState):
   }
 
   const settings = await getSettings(ctx);
+  const memberDiscountPercent = basket.memberId === undefined ? null : settings.memberDiscountPercent;
   const priced = priceBasket({
     lines,
     deals: await repos.deals.list(),
     at: nowIso(ctx),
-    memberDiscountPercent: basket.memberId === undefined ? null : settings.memberDiscountPercent,
+    memberDiscountPercent,
     depositBalancePence,
   });
-  return { id: ctx.newId(), kind: 'sale', basket: snapshotBasket(basket), priced, tender: startTendering(priced.totalPence) };
+  return {
+    id: ctx.newId(),
+    kind: 'sale',
+    basket: snapshotBasket(basket),
+    priced,
+    memberDiscountPercent,
+    tender: startTendering(priced.totalPence),
+  };
 }
 
 /**

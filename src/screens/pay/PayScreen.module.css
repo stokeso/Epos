@@ -1,0 +1,89 @@
+/*
+ * Pay layout. Phones: totals, then the tender keys, then the order (collapsed).
+ * >= 900 px: totals and the order on the left, the tender keys on the right.
+ */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'totals'
+    'tender'
+    'order';
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.totals {
+  grid-area: totals;
+  min-width: 0;
+}
+
+.tender {
+  grid-area: tender;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.order {
+  grid-area: order;
+  min-width: 0;
+}
+
+.finish {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Taps are ignored briefly after Pay opens (double-tap guard, D-134). */
+.resting {
+  pointer-events: none;
+}
+
+.finishText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.finishTitle {
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+}
+
+.saving {
+  padding: var(--space-6) 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+    grid-template-areas:
+      'totals tender'
+      'order tender';
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    column-gap: var(--space-6);
+    row-gap: var(--space-4);
+  }
+}
+
+@media (max-width: 599px) {
+  .layout {
+    gap: var(--space-3);
+  }
+
+  .finish {
+    padding: var(--space-4);
+  }
+}

@@ -1,12 +1,16 @@
 import { defineConfig } from '@playwright/test';
 
 const executablePath = process.env.PW_CHROMIUM_PATH ?? '/opt/pw-browsers/chromium';
-// PW_PORT lets several agents run the suite side by side; each gets its own build folder.
+// PW_PORT lets several agents run the suite side by side; each gets its own build folder and
+// its own results folder (Playwright empties its output folder when a run starts, so a shared
+// one would delete another run's traces mid-test). Delete both folders when done.
 const port = Number(process.env.PW_PORT ?? 4173);
 const outDir = port === 4173 ? 'dist' : `dist-e2e-${port}`;
+const outputDir = port === 4173 ? 'test-results' : `test-results-${port}`;
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  outputDir,
   fullyParallel: false,
   workers: 1,
   retries: 0,

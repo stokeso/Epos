@@ -1,0 +1,257 @@
+/*
+ * Club EPOS design tokens and global base styles (docs/ui-plan.md, "Styling conventions").
+ * System fonts only: the app must work offline, so no web fonts and no CDNs.
+ * Components use CSS modules (*.module.css) and read these custom properties.
+ */
+
+:root {
+  /* Brand: deep green chrome */
+  --color-brand-950: #0b2415;
+  --color-brand-900: #14532d;
+  --color-brand-800: #166534;
+  --color-brand-700: #15803d;
+  --color-brand-200: #bbe5c8;
+  --color-brand-100: #dcf3e3;
+  --color-brand-50: #f0f9f3;
+  --color-on-brand: #ffffff;
+  --color-on-brand-muted: #cfe8d7;
+
+  /* Surfaces (off-white) */
+  --color-bg: #f5f4ef;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #ecebe4;
+  --color-surface-hover: #f1f0ea;
+  --color-border: #d9d6cc;
+  --color-border-strong: #a8a497;
+
+  /* Text (all AA on --color-bg and --color-surface) */
+  --color-text: #1a1f1c;
+  --color-text-muted: #545b56;
+  --color-text-inverse: #ffffff;
+
+  /* Status */
+  --color-danger: #b42318;
+  --color-danger-strong: #912018;
+  --color-danger-bg: #fef3f2;
+  --color-danger-border: #f4a9a2;
+  --color-warning: #7a4700;
+  --color-warning-bg: #fff6df;
+  --color-warning-border: #e9bd5d;
+  --color-info: #1e40af;
+  --color-info-bg: #eef3ff;
+  --color-info-border: #a9bdf5;
+  --color-success: #166534;
+  --color-success-bg: #ecf8f0;
+  --color-success-border: #9bd3ae;
+
+  /* Money: discounts and deposits read as subtractions */
+  --color-money-negative: #9a2a12;
+
+  /* Focus: always visible; dark surfaces override --focus-ring */
+  --focus-ring: #1d4ed8;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+
+  /* Type (system stack only) */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-size-xs: 0.8125rem;
+  --font-size-sm: 0.9375rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.1875rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.75rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 650;
+  --line-height: 1.45;
+
+  /* Spacing scale (4 px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgb(20 30 25 / 0.08);
+  --shadow-md: 0 2px 8px rgb(20 30 25 / 0.12);
+  --shadow-lg: 0 12px 32px rgb(10 20 15 / 0.22);
+
+  /* Touch targets */
+  --touch-min: 48px;
+  --touch-lg: 56px;
+  --touch-xl: 72px;
+  --product-min-height: 88px;
+
+  /* Layout */
+  --header-height: 56px;
+  --basket-panel-width: 380px;
+  --content-max: 1120px;
+  --content-narrow: 640px;
+  --sheet-bar-height: 72px;
+  --page-gutter: var(--space-4);
+
+  /* Stacking */
+  --z-header: 10;
+  --z-sheet-bar: 20;
+  --z-modal: 50;
+  --z-toast: 70;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration: 200ms;
+
+  color-scheme: light;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --page-gutter: var(--space-5);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.2;
+  font-weight: var(--font-weight-bold);
+}
+
+h1 {
+  font-size: var(--font-size-xl);
+}
+
+h2 {
+  font-size: var(--font-size-lg);
+}
+
+h3 {
+  font-size: var(--font-size-md);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-brand-800);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Visible focus everywhere (keyboard); dark surfaces set --focus-ring. */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+::selection {
+  background: var(--color-brand-200);
+}
+
+/* Money: always tabular so columns of amounts line up. */
+.money,
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-2);
+  top: -100px;
+  z-index: calc(var(--z-toast) + 1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

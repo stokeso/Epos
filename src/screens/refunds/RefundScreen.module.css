@@ -1,0 +1,410 @@
+/* ------------------------------------------------------------------ search */
+
+.search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchField {
+  flex: 1 1 260px;
+}
+
+.searchField input {
+  min-height: var(--touch-lg);
+  font-size: var(--font-size-lg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Line the button up with the input (the label sits above the input). */
+.searchButton {
+  flex: 0 0 auto;
+  margin-top: calc(var(--font-size-md) * var(--line-height) + var(--space-1));
+}
+
+@media (max-width: 599px) {
+  .searchButton {
+    flex: 1 1 100%;
+    margin-top: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ empty */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.empty p {
+  max-width: 40ch;
+}
+
+.emptyIcon {
+  color: var(--color-brand-700);
+}
+
+/* ------------------------------------------------------------------ layout */
+
+.layout {
+  display: grid;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .summary {
+    position: sticky;
+    top: var(--space-4);
+  }
+
+  .allDone {
+    grid-column: 2;
+  }
+}
+
+/* ------------------------------------------------------------------ original sale */
+
+.sale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.saleHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.saleTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eyebrow {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.receipt {
+  font-size: var(--font-size-xl);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.saleMeta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.saleTotal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  text-align: right;
+}
+
+.saleTotalLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.saleTenders {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--color-info-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-info-bg);
+  font-size: var(--font-size-sm);
+}
+
+.linesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+}
+
+.linesTitle {
+  font-size: var(--font-size-md);
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ------------------------------------------------------------------ one line */
+
+.line {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.lineSelected {
+  border-color: var(--color-brand-700);
+  background: var(--color-brand-50);
+}
+
+.lineTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lineInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lineName {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.lineMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.lineRefunded {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.lineAmount {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: var(--font-size-lg);
+}
+
+.lineAmountLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lineControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stockChoice {
+  flex: 1 1 240px;
+  min-width: 0;
+  max-width: 360px;
+}
+
+.untracked {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.fullyRefunded {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ------------------------------------------------------------------ stepper */
+
+.stepper {
+  display: inline-flex;
+  flex: none;
+  align-items: stretch;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.stepButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-lg);
+  min-height: var(--touch-lg);
+  padding: 0;
+  border: none;
+  background: var(--color-surface-sunken);
+  color: var(--color-brand-900);
+  touch-action: manipulation;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.stepButton:hover:not(:disabled) {
+  background: var(--color-brand-100);
+}
+
+.stepButton:active:not(:disabled) {
+  background: var(--color-brand-200);
+}
+
+.stepButton:disabled {
+  color: var(--color-border-strong);
+}
+
+.stepButton:focus-visible {
+  outline-offset: -3px;
+}
+
+.stepValue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  padding: 0 var(--space-2);
+  border-inline: 1.5px solid var(--color-border);
+  line-height: 1.1;
+}
+
+.stepQty {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepMax {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ------------------------------------------------------------------ summary */
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--color-brand-800);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.summaryTitle {
+  font-size: var(--font-size-lg);
+}
+
+.summaryCount {
+  margin-top: calc(-1 * var(--space-3));
+  color: var(--color-text-muted);
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.totalLabel {
+  font-weight: var(--font-weight-bold);
+}
+
+.summaryHint {
+  margin-top: calc(-1 * var(--space-2));
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ------------------------------------------------------------------ result */
+
+.doneFocus {
+  border-radius: var(--radius);
+  scroll-margin-top: var(--space-4);
+}
+
+.doneFocus:focus {
+  outline: none;
+}
+
+/* Forced colours: a line being refunded keeps a visible marker without its tinted background. */
+@media (forced-colors: active) {
+  .lineSelected {
+    outline: 3px solid Highlight;
+    outline-offset: -3px;
+  }
+}

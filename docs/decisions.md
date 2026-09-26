@@ -1277,3 +1277,67 @@ How to use this file:
   - **Deposit receipt:** "Deposit balance now" is the D-025 balance over the booking's sales up to and including that deposit, so a reprint shows the historical figure.
   - **First run:** `completeFirstRun` returns only the Session (contract). The app reads the persistence result with `checkPersistentStorage()`, whose `persisted()` reflects the grant made during setup.
 - **Why:** Screens branch on `code` (D-117), so the codes need to be fixed before the UI is built.
+
+## 25. UI behaviour settled while fixing review findings
+
+### D-130 Basket changes run one at a time; Pay opening and a payment in progress freeze what they cover
+- **Spec:** §6.3, §6.4, §6.11, §8; refines D-011, D-033, D-047, D-085 and D-095.
+- **Decision:**
+  - **One change at a time:** the basket store runs every basket change (add, void, attach or detach a member or booking, load a tab, restore the draft) in a queue. Each change reads the basket only when its turn comes. So two quick taps on '−' are two voids of one unit each (two void events, two units removed), and a product tapped while a void is being written is added to the reduced basket instead of being overwritten. The draft save and re-pricing that follow a change are not queued.
+  - **Pay opening:** `openSale` joins the same queue, so it prices the basket after any change already under way. While it runs (`payStore.opening`), every basket change is refused with "Finish or cancel the payment first". Pay therefore always covers exactly the basket; nothing can be added to the basket and then dropped, uncharged and unvoided, when the sale completes.
+  - **Z close:** refused while a Pay session of either kind has tenders taken. A deposit payment leaves the basket empty, so the D-047 basket check alone let a Z close run with the deposit's cash already in the drawer: the Z would record it as "over" and the deposit could no longer be saved (NO_OPEN_PERIOD). The Period screen disables Z close with "A payment is in progress. Finish or cancel it before closing the period." and a Back to Pay link; the wizard checks again before Confirm Z close. A Pay session with no tenders does not block it.
+- **Why:** Each of these let money be taken or given with no matching record.
+
+### D-131 Pay wording for £0.00 bills and failed deposits
+- **Spec:** §6.4, §8; refines D-031 and D-034.
+- **Decision:** A £0.00 bill says "The deposit covers the whole bill" only when the frozen pricing applied a deposit (`depositAppliedPence > 0`); otherwise (a £0.00 product, a 100% member discount) it says "The total is £0.00. Complete the sale to save it and print the receipt." A failed deposit commit reads "Deposit not saved: {message}" (a sale keeps "Sale not saved: {message}") and says "The payments taken are kept", since a deposit has no basket. A commit that fails with NO_OPEN_PERIOD also refreshes the cached period, so the header shows "No period open".
+
+### D-132 PIN keypad keyboard use and focus
+- **Spec:** §6.2; refines D-073 and D-076.
+- **Decision:** Enter on a focused button activates that button, including the keypad's own keys: Enter on Clear clears, Enter on '1' types 1, Enter on Enter submits. Enter with focus anywhere else submits. The keypad group is focusable (tabIndex −1) and is the override dialog's initial focus. Tapping or clicking a key does not move focus onto it, so physical digits and Enter keep working after taps. When an action disables the focused key (Enter after a submit, Clear, the last Delete), focus moves to the keypad group, so it never falls out of the override dialog.
+- **Why:** Taking over Enter on the keypad's own keys made Enter on Clear submit the PIN, and a wrong PIN counts towards the lockout.
+
+### D-133 Reloading onto a new build after an update
+- **Spec:** §1.1, §2; refines D-113.
+- **Decision:** The app registers its service worker through `virtual:pwa-register` (`src/app/serviceWorker.ts`), not an injected script. With `registerType: 'autoUpdate'`, a new worker takes over at once and deletes the old build's files. The client then reloads the page onto the new build, so a lazily loaded screen never asks for a deleted chunk. The reload waits while a payment is in flight: while a Pay session has tenders or is saving, and while Pay is on screen, since it may be showing the change to hand back. It runs as soon as the payment is finished or cancelled and Pay is left. Otherwise it behaves as D-113 says: the draft is restored at the next login.
+
+### D-134 Pay keys hold still and ignore repeat taps; a payment's preconditions are checked where they can go away; focus stays put
+- **Spec:** §6.4, §6.7, §6.10, §6.11, §8; refines D-029, D-030, D-033, D-068, D-090, D-109, D-130, D-132 and D-133.
+- **Decision:**
+  - **Pay double taps:** for 400 ms (`TENDER_REST_MS`, as the Z close wizard's Confirm) after Pay opens and after every tender attempt, accepted or refused, the tender panel ignores taps: pointer events are off, so nothing looks different, and the handlers ignore Enter too. So the second tap of a double tap never takes a second tender. Without this, the second tap on Card after a part tender took the whole remaining balance by card and saved the sale, and a double tap on the till's Pay typed a digit into Pay's keypad.
+    - The same rest covers Complete sale on a £0.00 bill when Pay opens.
+    - The change screen's New sale / Back to booking and Print receipt again ignore taps for their first 400 ms, so a repeat tap on the tender that finished the payment can't skip the change to hand back.
+  - **Pay keys hold still:** nothing above the quick-cash and Exact / Cash / Card keys changes height when a tender is taken or refused.
+    - A refusal such as "Card can't be more than the balance" shows under the tender keys.
+    - Below 900 px, where the totals card sits above the keys, the tenders taken share one fixed-height "Taken" row that scrolls sideways inside itself ("Nothing yet" before the first).
+    - Before this, the new row or the error banner pushed a different money key under the finger, and a repeat tap took cash and saved the sale.
+  - **A Pay session outlives its preconditions only with money taken:**
+    - After a Z close, a Pay session with no tenders is dropped. It can only be a deposit, because D-047 needs an empty basket, and it could never be saved (D-068). Before, the next login went straight to that stale Pay screen (D-078).
+    - After a booking is settled or cancelled, a deposit Pay session for it with no tenders is dropped too.
+    - Settling or cancelling is refused while a deposit for that booking has tenders taken: "A deposit payment for this booking is in progress. Finish or cancel it before closing the booking." Otherwise the deposit could no longer be saved (BOOKING_NOT_OPEN).
+    - As a backstop, Pay with no open period shows "No trading period open." with Open period, and disables the tender keys and Complete sale. Staff are told not to take money that can't be saved.
+  - **Backup import:** refused while a Pay session has tenders: "A payment is in progress. Finish or cancel it before importing a backup.", with Back to Pay. This follows D-130's reasoning for Z close. The import replaces all data and ends the session (D-090), so it would silently drop money already in the drawer. That would be a third way out of Pay, with no hand-back step (D-033).
+  - **Update reload:** D-133's reload also waits while the receipt fallback panel is open. The panel holds a blocked receipt, X read or Z report only in memory, and v1 can't reprint a past receipt or Z report (D-109, D-047).
+  - **Focus stays put:**
+    - A busy `Button` is `aria-disabled` and ignores clicks and form submits, but is not natively disabled, so a focused button keeps keyboard focus. Before, No sale, X read, Run report, Export backup, Find sale and Add product dropped focus to `<body>`, and Add product's dialog then restored focus there.
+    - A quantity stepper (Void, Refund) that reaches its limit hands focus to the other stepper.
+    - The money keypad's group is focusable and is a dialog's initial focus, as the PIN keypad is (D-132). Before, Open period, Z close's Count cash and Take deposit opened on "Delete last digit", so Enter after typing an amount deleted a digit (£100.00 became £10.00).
+    - Enter with the keypad group focused runs the dialog's primary action (Open period, Continue, Continue to Pay). Enter on a focused key still presses that key.
+    - The Tab dialog's name/table field stays focusable (read-only) while a tab opens. A refused label focuses the field and is announced (`role="alert"`).
+- **Why:** Each of these either took or dropped money with no matching record, or lost the user's place. The service layer was already correct: every case is about what the screen lets staff do before the service refuses.
+
+### D-135 Leaving Pay drops an untendered sale; the receipt panel outlives a lock; focus never falls to `<body>`
+- **Spec:** §6.2, §6.4, §6.6, §6.10, §8; refines D-011, D-033, D-063, D-076, D-078, D-109 and D-134.
+- **Decision:**
+  - **Leaving Pay:** a sale Pay session with no tenders is dropped whenever Pay is left, not only by 'Back to basket' or the Till: the Menu or browser Back drop it too (D-011: "Leaving Pay drops the freeze"). A lock ends the session before Pay closes, so the Pay session survives a lock as D-033 and D-078 say. A session with tenders is always kept (D-033). Before, a price edit made after leaving Pay through the Menu was ignored: the next login went back to Pay (D-078) and charged the superseded price, although D-009 reprices an open basket.
+  - **Member discount % on Pay:** `SalePaySession.memberDiscountPercent` records the % the frozen pricing used (null with no member). Pay labels the discount with it, never with the live setting, so a change made while a payment is open cannot show 10% beside a 15% amount.
+  - **Emptied tab:** with every line voided, the Tab dialog's button reads **Remove tab** and the toast says "Tab {label} removed (no items left)", since `parkTab` then deletes the tab (D-063 d). It no longer says "Saved to …".
+  - **Receipt fallback panel:** only **Close** and **Reprint** close it; Escape and a tap on the backdrop do not. A lock keeps its document: the panel is hidden while the till is locked and shown again after the next login, whoever logs in (as a printout would lie in the tray). It may be the only copy of a receipt, X read or Z report (D-047, D-109), which is why D-134 already holds the update reload for it.
+  - **Scroll:** each route opens at the top of `<main>`; the shell resets its scroll when the path changes.
+  - **Focus stays on the page:**
+    - When a dialog closes and its opener can no longer take focus (disabled or removed, e.g. Void after voiding the only line), focus goes to the nearest container that takes focus from script (`tabindex="-1"`: an open dialog, the basket, `<main>`), not to `<body>`.
+    - The same applies when a focused control removes itself: '−' on a line's last unit, Remove member, Remove booking and a banner's dismiss button. The basket panel takes focus (`tabindex="-1"`), so on a phone focus stays inside the open basket sheet.
+    - Focus never moves to a neighbouring button, so a repeated Enter cannot void another line or open the drawer.
+  - **PIN lockout:** the countdown is a `role="timer"` (not a live region), so it is not read out every second. A polite live region says once "Too many attempts. The keypad is locked for 30 seconds." and, when it ends, "The keypad is unlocked. You can enter a PIN again."
+  - **Forced colours (Windows High Contrast):** product buttons keep a border, and the selected category tab, the selected basket line, a chosen search result and a refund line being refunded keep a system `Highlight` marker, since forced colours drop the backgrounds and shadows that show them otherwise.
+- **Why:** The first two let a sale be charged at prices it should not have or show the customer contradictory figures; the rest lost the user's place, a document or a tab without saying so.

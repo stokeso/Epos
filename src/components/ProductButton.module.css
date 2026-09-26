@@ -1,0 +1,109 @@
+.button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--product-min-height);
+  padding: var(--space-3);
+  border: none;
+  border-radius: var(--radius);
+  text-align: left;
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.18),
+    var(--shadow-sm);
+  touch-action: manipulation;
+  user-select: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(1.07);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.94);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+}
+
+.button:focus-visible {
+  outline-offset: 3px;
+}
+
+.name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.withBadge .name {
+  padding-right: var(--space-6);
+}
+
+/* A three-digit badge (100–999) is about 43 px wide, 8 px from the edge: keep the name clear of it. */
+.wideBadge .name {
+  padding-right: 44px;
+}
+
+.price {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  min-width: 28px;
+  height: 28px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: #111814;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 28px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+@media (max-width: 599px) {
+  .button {
+    min-height: 80px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .name {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/*
+ * Windows High Contrast (forced colours) drops backgrounds and box-shadows: give each product a
+ * visible button edge so one button's end and the next one's start can be told apart.
+ */
+@media (forced-colors: active) {
+  .button {
+    border: 2px solid ButtonText;
+  }
+
+  .button:disabled {
+    border-color: GrayText;
+    opacity: 1;
+  }
+
+  .badge {
+    border: 1px solid CanvasText;
+  }
+}

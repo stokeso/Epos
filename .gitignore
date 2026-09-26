@@ -4,6 +4,7 @@ dev-dist
 *.tsbuildinfo
 playwright-report
 test-results
+test-results-*
 coverage
 .DS_Store
 *.local

@@ -1,0 +1,144 @@
+.button {
+  --btn-bg: var(--color-surface);
+  --btn-fg: var(--color-text);
+  --btn-border: var(--color-border-strong);
+  --btn-bg-hover: var(--color-surface-hover);
+  --btn-bg-active: var(--color-surface-sunken);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--btn-border);
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  touch-action: manipulation;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.button:hover:not(:disabled, [aria-disabled='true']) {
+  background: var(--btn-bg-hover);
+}
+
+.button:active:not(:disabled, [aria-disabled='true']) {
+  background: var(--btn-bg-active);
+  transform: translateY(1px);
+}
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  opacity: 0.45;
+}
+
+.primary {
+  --btn-bg: var(--color-brand-800);
+  --btn-fg: var(--color-on-brand);
+  --btn-border: var(--color-brand-800);
+  --btn-bg-hover: var(--color-brand-900);
+  --btn-bg-active: var(--color-brand-950);
+  box-shadow: var(--shadow-sm);
+}
+
+.secondary {
+  --btn-bg: var(--color-surface);
+}
+
+.danger {
+  --btn-bg: var(--color-danger);
+  --btn-fg: #ffffff;
+  --btn-border: var(--color-danger);
+  --btn-bg-hover: var(--color-danger-strong);
+  --btn-bg-active: #6f1812;
+}
+
+.dangerOutline {
+  --btn-bg: var(--color-surface);
+  --btn-fg: var(--color-danger);
+  --btn-border: var(--color-danger);
+  --btn-bg-hover: var(--color-danger-bg);
+  --btn-bg-active: #fbdcd8;
+}
+
+.ghost {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-bg-hover: rgb(20 30 25 / 0.06);
+  --btn-bg-active: rgb(20 30 25 / 0.12);
+}
+
+/* For dark (brand) surfaces such as the app header. */
+.onBrand {
+  --btn-bg: rgb(255 255 255 / 0.08);
+  --btn-fg: var(--color-on-brand);
+  --btn-border: rgb(255 255 255 / 0.35);
+  --btn-bg-hover: rgb(255 255 255 / 0.16);
+  --btn-bg-active: rgb(255 255 255 / 0.24);
+}
+
+.sm {
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* sm keeps a 48 px hit area through padding on the pseudo element. */
+.sm {
+  position: relative;
+}
+
+.sm::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.lg {
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-lg);
+}
+
+.xl {
+  min-height: var(--touch-xl);
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-xl);
+  border-radius: var(--radius-lg);
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.busy {
+  cursor: progress;
+}
+
+.spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

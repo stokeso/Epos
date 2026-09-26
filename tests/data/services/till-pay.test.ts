@@ -245,6 +245,20 @@ describe('Pay (D-011, D-029..D-034)', () => {
     expect(sale.changePence).toBe(160);
   });
 
+  it('freezes the member discount % with the pricing, so Pay can label it after the setting changes (D-011, D-135)', async () => {
+    const t = await setupTill();
+    const withMember = await openSalePayment(t.h.ctx, basket([[t.c.lager, 3], [t.c.crisps, 2]], { memberId: t.c.member.id }));
+    expect(withMember.memberDiscountPercent).toBe(15);
+    expect(withMember.priced.memberDiscountPence).toBe(173);
+    await t.h.repos.settings.update({ memberDiscountPercent: 10 });
+    // The open session keeps the % its pricing used; a new one reads the new setting.
+    expect(withMember.memberDiscountPercent).toBe(15);
+    const later = await openSalePayment(t.h.ctx, basket([[t.c.lager, 3], [t.c.crisps, 2]], { memberId: t.c.member.id }));
+    expect(later.memberDiscountPercent).toBe(10);
+    const noMember = await openSalePayment(t.h.ctx, basket([[t.c.lager, 3]]));
+    expect(noMember.memberDiscountPercent).toBeNull();
+  });
+
   it('keeps a deal that ends while Pay is open (D-011 example)', async () => {
     const t = await setupTill();
     await saveDeal(t.h.ctx, auth(t.manager, 'editCatalogue'), null, {

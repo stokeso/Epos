@@ -1,0 +1,194 @@
+.totals {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* The remaining balance reads like a customer display: large light figures on the brand green. */
+.hero {
+  /* The figure is sized against the hero's width (cqi), so it never overflows the card. */
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  background: var(--color-brand-900);
+  color: var(--color-on-brand);
+}
+
+.heroSettled {
+  background: var(--color-brand-800);
+}
+
+.heroLabel {
+  color: var(--color-on-brand-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heroAmount {
+  /*
+   * As large as the design allows, but never wider than the hero. --hero-chars is the length of
+   * the formatted amount ('£1,040.00' = 9); bold tabular figures in the system fonts average
+   * under 0.72em a character, so the figure fits in 100cqi at 100cqi / (0.72 × chars). The line
+   * height stays fixed, so a long amount never moves the buttons below.
+   */
+  --hero-max: clamp(2.5rem, 7vw, 3.5rem);
+  font-size: min(var(--hero-max), calc(100cqi / (var(--hero-chars, 9) * 0.72)));
+  line-height: calc(var(--hero-max) * 1.05);
+}
+
+.figures {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: var(--space-2) var(--space-5) var(--space-3);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.row dd {
+  margin: 0;
+}
+
+.tender dt {
+  color: var(--color-text);
+}
+
+.tenderBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-brand-100);
+  color: var(--color-brand-900);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Compact (narrow) layouts: every tender taken shares this one row, which keeps its height and
+ * scrolls sideways inside itself, so the tender keys below never move (D-134).
+ */
+.takenRow {
+  align-items: center;
+}
+
+.takenRow dt {
+  flex: none;
+}
+
+.takenValue {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.takenNone {
+  color: var(--color-text-muted);
+}
+
+.takenList {
+  display: flex;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.takenList::-webkit-scrollbar {
+  display: none;
+}
+
+.takenItem {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2) 2px 2px;
+  border-radius: 999px;
+  background: var(--color-surface-sunken);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.changeNone dt,
+.changeNone dd {
+  color: var(--color-text-muted);
+}
+
+.changeDue {
+  color: var(--color-success);
+}
+
+.hint {
+  padding: 0 var(--space-5) var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 599px) {
+  .hero {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .heroLabel {
+    flex: none;
+  }
+
+  .heroAmount {
+    /* Label and figure share the row: 7.5rem is kept for 'REMAINING' and the gap. */
+    --hero-max: var(--font-size-3xl);
+    font-size: min(var(--hero-max), calc((100cqi - 7.5rem) / (var(--hero-chars, 9) * 0.72)));
+    min-width: 0;
+  }
+
+  .figures {
+    padding: var(--space-1) var(--space-4) var(--space-2);
+  }
+
+  .row {
+    min-height: 40px;
+    padding: var(--space-1) 0;
+  }
+
+  .hint {
+    display: none;
+  }
+}

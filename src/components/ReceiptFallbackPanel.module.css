@@ -1,0 +1,17 @@
+.paper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+}
+
+.frame {
+  display: block;
+  width: min(340px, 100%);
+  height: min(60dvh, 640px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  box-shadow: var(--shadow-md);
+}

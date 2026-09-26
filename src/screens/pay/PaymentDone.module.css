@@ -1,0 +1,98 @@
+.done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 520px;
+  margin: var(--space-4) auto 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.icon {
+  color: var(--color-success);
+}
+
+.heading {
+  font-size: var(--font-size-xl);
+}
+
+.meta {
+  color: var(--color-text-muted);
+}
+
+.change {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-900);
+  color: var(--color-on-brand);
+}
+
+.changeLabel {
+  color: var(--color-on-brand-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.changeAmount {
+  font-size: clamp(3rem, 12vw, 4.5rem);
+  line-height: 1;
+}
+
+.figures {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row dd {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (max-width: 599px) {
+  .done {
+    margin-top: 0;
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+}
+
+/* Taps are ignored for a moment after the screen appears (double-tap guard, D-134). */
+.resting {
+  pointer-events: none;
+}

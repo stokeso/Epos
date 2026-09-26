@@ -1,0 +1,122 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+@media (max-width: 599px) {
+  .actions > * {
+    flex: 1 1 auto;
+  }
+}
+
+.fileName {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.fileRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The real <input type="file"> is visually hidden; its label is the visible button. */
+.fileLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-5);
+  border: 1.5px dashed var(--color-brand-700);
+  border-radius: var(--radius);
+  background: var(--color-brand-50);
+  color: var(--color-brand-900);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  user-select: none;
+}
+
+.fileLabel:hover {
+  background: var(--color-brand-100);
+}
+
+.fileInput:focus-visible + .fileLabel {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.fileLabelDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.problems {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-danger-border);
+  border-left-width: 5px;
+  border-radius: var(--radius);
+  background: var(--color-danger-bg);
+}
+
+.problemsTitle {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-bold);
+}
+
+.problems ul {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+  overflow-wrap: anywhere;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.count {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.count dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.count dd {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.confirm input {
+  max-width: 16rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+}

@@ -1,0 +1,281 @@
+/* Shared styles for the till's dialogs (member, booking, tab, void). */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+}
+
+/* Sections (tab dialog) */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.section + .section {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.sectionHeading {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formSubmit {
+  align-self: flex-end;
+  min-width: 160px;
+}
+
+@media (max-width: 599px) {
+  .formSubmit {
+    align-self: stretch;
+  }
+}
+
+/* A list of tappable choices (open tabs, bookings) */
+.choiceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--touch-lg);
+  padding: var(--space-2) var(--space-4);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  text-align: left;
+  touch-action: manipulation;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.choice:hover:not(:disabled) {
+  border-color: var(--color-brand-700);
+  background: var(--color-brand-50);
+}
+
+.choice:active:not(:disabled) {
+  background: var(--color-brand-100);
+}
+
+.choice:disabled {
+  opacity: 0.55;
+}
+
+.choiceCurrent {
+  border-color: var(--color-brand-800);
+  background: var(--color-brand-50);
+  box-shadow: inset 4px 0 0 var(--color-brand-800);
+}
+
+.choiceMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.choiceTitle {
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.choiceMeta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.choiceAside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: none;
+}
+
+.choiceAsideLabel,
+.choiceVerb {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.choiceVerb {
+  color: var(--color-brand-800);
+}
+
+.linkButton {
+  align-self: flex-start;
+}
+
+/* 'On the till' (tab dialog) */
+.current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius);
+  background: var(--color-warning-bg);
+}
+
+.currentText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.currentLabel {
+  color: var(--color-warning);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.currentValue {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+/* Member search results */
+.memberResult {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+/* The same member-number chip as the Members screen. */
+.memberNumber {
+  flex: none;
+  min-width: 4.5rem;
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-brand-200);
+  border-radius: var(--radius-sm);
+  background: var(--color-brand-50);
+  color: var(--color-brand-900);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.memberName {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.pill {
+  flex: none;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-800);
+  color: var(--color-on-brand);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Void quantity stepper */
+.qtyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+}
+
+.qtyLabel {
+  flex: 1 1 100%;
+  font-weight: var(--font-weight-bold);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.stepperButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-lg);
+  height: var(--touch-lg);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  touch-action: manipulation;
+}
+
+.stepperButton:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+}
+
+.stepperButton:disabled {
+  color: var(--color-border-strong);
+}
+
+.stepperButton:focus-visible {
+  outline-offset: -3px;
+}
+
+.stepperValue {
+  min-width: 3ch;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.qtyOf {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
