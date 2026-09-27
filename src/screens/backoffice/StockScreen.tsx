@@ -78,6 +78,7 @@ export function StockScreen() {
           title="Low stock"
           description="At or below the low-stock level, including anything below zero. Selling is never blocked."
           className={data.low.length > 0 ? stockStyles.lowPanel : undefined}
+          focusable
         >
           <div data-testid="low-stock-list">
             {data.low.length === 0 ? (

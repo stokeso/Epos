@@ -42,6 +42,33 @@ test('the check sees a dialog: content wider than a dialog fails it', async ({ p
   await expect(expectNoHorizontalScroll(page)).rejects.toThrow(/the open dialog scrolls horizontally/);
 });
 
+test('the check sees the header and the manager banners, which the shell clips: content wider than them fails it', async ({ page }) => {
+  // Storage that is not persisted shows the manager the storage warning (D-112).
+  await page.addInitScript(() => {
+    if (navigator.storage === undefined) return;
+    navigator.storage.persisted = () => Promise.resolve(false);
+    navigator.storage.persist = () => Promise.resolve(false);
+  });
+  await freshStart(page);
+  await firstRun(page);
+  const banner = page.getByTestId('storage-warning');
+  await expect(banner).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  for (const target of [page.locator('header').first(), banner]) {
+    await target.evaluate((el) => {
+      const wide = document.createElement('div');
+      wide.dataset.wide = '';
+      wide.style.flex = 'none';
+      wide.style.width = '2000px';
+      wide.style.height = '10px';
+      el.append(wide);
+    });
+    await expect(expectNoHorizontalScroll(page)).rejects.toThrow(/the header or a banner is wider than the screen/);
+    await page.locator('[data-wide]').evaluate((el) => el.remove());
+    await expectNoHorizontalScroll(page);
+  }
+});
+
 test('till, bookings, members and back-office dialogs never scroll sideways', async ({ page }) => {
   await freshStart(page);
   await firstRun(page);

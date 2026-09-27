@@ -68,6 +68,8 @@ export function RefundScreen() {
   const devicePrefix = useAppStore((s) => s.settings?.devicePrefix);
   const [query, setQuery] = useState('');
   const [queryError, setQueryError] = useState<string | null>(null);
+  /** Counts refused searches: each one moves focus to the receipt number (D-139). */
+  const [refusedSearches, setRefusedSearches] = useState(0);
   const [searching, setSearching] = useState(false);
   const [lookup, setLookup] = useState<Lookup>({ status: 'idle' });
   const [quantities, setQuantities] = useState<ReadonlyMap<number, number>>(new Map());
@@ -80,6 +82,7 @@ export function RefundScreen() {
   const request = useRef(0);
   const committingRef = useRef(false);
   const doneRef = useRef<HTMLDivElement>(null);
+  const searchFormRef = useRef<HTMLFormElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const resultsHeadingId = useId();
   const summaryHeadingId = useId();
@@ -107,6 +110,7 @@ export function RefundScreen() {
     setDone(null);
     if (normaliseReceiptQuery(query) === null) {
       setQueryError('Enter a receipt number');
+      setRefusedSearches((n) => n + 1);
       return;
     }
     setQueryError(null);
@@ -188,6 +192,13 @@ export function RefundScreen() {
     }
   };
 
+  // A refused search moves focus to the receipt number, whose message is then its description, as
+  // the app's other forms do (WCAG 3.3.1; D-137, D-139). Enter in the field announces it instead.
+  useEffect(() => {
+    if (refusedSearches === 0) return;
+    searchFormRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [refusedSearches]);
+
   // The Refund button may be far down the page: bring the result (how much to give back) into view.
   useEffect(() => {
     if (done === null) return;
@@ -217,7 +228,7 @@ export function RefundScreen() {
         </Banner>
       )}
 
-      <form className={styles.search} onSubmit={(event) => void find(event)} role="search" aria-label="Find a sale" noValidate>
+      <form ref={searchFormRef} className={styles.search} onSubmit={(event) => void find(event)} role="search" aria-label="Find a sale" noValidate>
         <TextField
           label="Receipt number"
           value={query}
@@ -227,6 +238,7 @@ export function RefundScreen() {
           }}
           hint={`As printed on the receipt. Leading zeros can be left out, e.g. ${example}.`}
           error={queryError}
+          announceError
           className={styles.searchField}
           autoComplete="off"
           autoCapitalize="characters"

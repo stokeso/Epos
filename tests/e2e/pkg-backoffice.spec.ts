@@ -20,10 +20,12 @@ import {
   lock,
   login,
   loginKeypad,
+  expectMoney,
   navigate,
   openPeriod,
   readAuditEvents,
   readStore,
+  waitForDocument,
 } from './helpers';
 
 /** Menu -> Back office -> the section card named `section`. */
@@ -623,6 +625,38 @@ test('a backup import is refused while a payment has money taken, which would ot
   await expect(page.getByRole('button', { name: 'Import backup' })).toBeEnabled();
 });
 
+test('stock below zero never blocks a sale: Club Bitter at -12 still sells, and the low-stock list then shows -13 (spec §6.9, D-082)', async ({ page, context }) => {
+  await openSection(page, 'Stock', /#\/backoffice\/stock$/);
+  await page.getByRole('button', { name: 'Adjust stock', exact: true }).click();
+  const adjust = dialog(page, 'Adjust stock');
+  await adjust.getByLabel('Product').selectOption({ label: 'Club Bitter' });
+  await adjust.getByLabel('Take off stock').check();
+  await adjust.getByLabel('Quantity').fill('100');
+  await adjust.getByLabel('Reason').fill('Stock count');
+  await adjust.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(adjust).toBeHidden();
+  const low = page.getByTestId('low-stock-list');
+  await expect(low.getByTestId('low-stock-item').filter({ hasText: 'Club Bitter' }).getByTestId('low-stock-on-hand')).toHaveText('-12');
+
+  // The till does not read stock: the product stays on sale and the sale completes.
+  await openPeriod(page, 10_000);
+  await page.getByRole('tab', { name: 'Draught', exact: true }).click();
+  const bitter = page.getByRole('button', { name: 'Club Bitter', exact: true });
+  await expect(bitter).toBeEnabled();
+  await bitter.click();
+  await page.getByRole('button', { name: 'Pay', exact: true }).click();
+  await expect(page).toHaveURL(/#\/pay$/);
+  await expectMoney(page.getByTestId('amount-due'), 420);
+  await waitForDocument(context, () => page.getByRole('button', { name: 'Exact', exact: true }).click());
+  await expect(page).toHaveURL(/#\/till$/);
+
+  const product = await productByName(page, 'Club Bitter');
+  const sold = (await readStore<StockMovement>(page, 'stockMovements')).filter((m) => m.productId === product.id && m.reason === 'sale');
+  expect(sold.map((m) => m.qty)).toEqual([-1]);
+  await openSection(page, 'Stock', /#\/backoffice\/stock$/);
+  await expect(low.getByTestId('low-stock-item').filter({ hasText: 'Club Bitter' }).getByTestId('low-stock-on-hand')).toHaveText('-13');
+});
+
 test('keyboard focus: Add product goes busy without losing focus, and focus returns to it when its dialog closes (D-134)', async ({ page }) => {
   await openSection(page, 'Products', /#\/backoffice\/products$/);
   const add = page.getByRole('button', { name: 'Add product', exact: true });
@@ -722,4 +756,44 @@ test('keyboard focus: choosing a backup file keeps focus on the file input while
   await another.setInputFiles(await download.path());
   await expect(page.getByTestId('backup-summary')).toContainText('It is a valid Club EPOS backup.');
   await expect(another).toBeFocused();
+});
+
+// ---------------------------------------------------------------------------
+// Regressions: a dialog's save removes the row that opened it; focus stays on the page (D-135, D-139)
+// ---------------------------------------------------------------------------
+
+test('keyboard focus: deleting a category moves focus to the Categories list, not <body> (D-135, D-139)', async ({ page }) => {
+  await openSection(page, 'Categories', /#\/backoffice\/categories$/);
+  await page.getByRole('button', { name: 'Add category', exact: true }).click();
+  const add = dialog(page, 'Add category');
+  await add.getByLabel('Name', { exact: true }).fill('Temp');
+  await add.getByRole('button', { name: 'Add category', exact: true }).click();
+  await expect(add).toBeHidden();
+
+  const row = page.getByRole('button', { name: 'Edit Temp', exact: true });
+  await row.focus();
+  await page.keyboard.press('Enter');
+  const edit = dialog(page, 'Edit category');
+  await edit.getByRole('button', { name: 'Delete category', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  const confirm = dialog(page, 'Delete category?');
+  await confirm.getByRole('button', { name: 'Delete category', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(edit).toBeHidden();
+  await expect(toast(page, 'Temp deleted')).toBeVisible();
+  await expect(row).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Categories', exact: true })).toBeFocused();
+});
+
+test('keyboard focus: goods in that takes a product off the low-stock list moves focus to the Low stock panel, not <body> (D-135, D-139)', async ({ page }) => {
+  await openSection(page, 'Stock', /#\/backoffice\/stock$/);
+  await page.getByRole('button', { name: 'Goods in: Single Malt Whisky', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  const goodsIn = dialog(page, 'Goods in');
+  await goodsIn.getByLabel('Quantity').fill('20');
+  await goodsIn.getByRole('button', { name: 'Save', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(goodsIn).toBeHidden();
+  await expect(page.getByTestId('low-stock-list')).toContainText('Nothing is low on stock.');
+  await expect(page.getByRole('region', { name: 'Low stock', exact: true })).toBeFocused();
 });

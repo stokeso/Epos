@@ -136,6 +136,16 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* Phones: the badge sits above the number, so one 'Negative' badge does not widen the column
+   and push 'Low at' off the screen for every row (D-139). */
+@media (max-width: 599px) {
+  .onHandCell {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+}
+
 /* On hand now -> after */
 .preview {
   display: flex;

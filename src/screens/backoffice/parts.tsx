@@ -47,14 +47,19 @@ export interface PanelProps {
   children?: ReactNode;
   className?: string;
   testId?: string;
+  /**
+   * Takes focus from script (tabindex="-1"): when a focused control inside it goes away, focus
+   * moves here rather than to <main> (D-135, D-139).
+   */
+  focusable?: boolean;
 }
 
 /** A white card section (a labelled region) with a heading row. */
-export function Panel({ title, level = 2, description, actions, children, className, testId }: PanelProps) {
+export function Panel({ title, level = 2, description, actions, children, className, testId, focusable = false }: PanelProps) {
   const Heading = level === 2 ? 'h2' : 'h3';
   const titleId = useId();
   return (
-    <section className={`${styles.panel} ${className ?? ''}`} aria-labelledby={titleId} data-testid={testId}>
+    <section className={`${styles.panel} ${className ?? ''}`} aria-labelledby={titleId} data-testid={testId} tabIndex={focusable ? -1 : undefined}>
       <div className={styles.panelHead}>
         <div className={styles.panelHeadText}>
           <Heading id={titleId} className={styles.panelTitle}>

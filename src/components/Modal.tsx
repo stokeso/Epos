@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { ancestorsOf, canTakeFocus, focusFallback, isFocusLost } from './focus';
+import { ancestorsOf, canTakeFocus, focusFallback, isFocusLost, keepFocusWhenRemoved } from './focus';
 import { focusableWithin, isTopLayer, pushLayer, removeLayer } from './modalStack';
 import styles from './Modal.module.css';
 
@@ -38,12 +38,16 @@ export interface ModalProps {
   className?: string;
 }
 
+/** How long a restored opener is watched for removal by the screen's reload after a save. */
+const RELOAD_WATCH_MS = 10_000;
+
 /**
  * Accessible modal dialog: role="dialog", aria-modal, labelled by its title. Focus moves in on
  * open, is trapped while open, and returns to the previously focused element on close. If that
  * element can no longer take focus (the dialog's action disabled or removed it, e.g. Void after
- * voiding the only line), focus goes to the nearest focusable container it was in, else <main>,
- * rather than falling to <body> (D-135). The rest of the app is inert while it is open.
+ * voiding the only line), or the screen removes it just after (a reload after a save), focus goes
+ * to the nearest focusable container it was in, else <main>, rather than falling to <body>
+ * (D-135, D-139). The rest of the app is inert while it is open.
  * Rendered in a portal on document.body.
  */
 export function Modal(props: ModalProps) {
@@ -128,8 +132,13 @@ function ModalLayer({
     return () => {
       document.removeEventListener('keydown', onKeyDown, true);
       removeLayer(layer);
-      if (previous !== null && canTakeFocus(previous)) previous.focus({ preventScroll: true });
-      else if (previous !== null && isFocusLost()) focusFallback(previousAncestors)?.focus({ preventScroll: true });
+      if (previous !== null && canTakeFocus(previous)) {
+        previous.focus({ preventScroll: true });
+        // The screen often reloads after a save and may then remove the opener's row (a member
+        // moved to Inactive, a category deleted, a product off the low-stock list): focus then
+        // goes to the nearest focusable container or <main>, not <body> (D-135, D-139).
+        keepFocusWhenRemoved(previous, RELOAD_WATCH_MS);
+      } else if (previous !== null && isFocusLost()) focusFallback(previousAncestors)?.focus({ preventScroll: true });
     };
   }, [initialFocus]);
 

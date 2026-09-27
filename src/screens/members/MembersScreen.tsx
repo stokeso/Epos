@@ -7,9 +7,9 @@
  * Adding, editing and (de)activating are manager actions: the buttons are visible to everyone
  * (navigation is never gated, D-070) and Save asks for a Manager PIN when needed.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLoad } from '../../app';
-import { Banner, Button, Screen, SearchList, useDebouncedValue } from '../../components';
+import { Banner, Button, isFocusLost, Screen, SearchList, useDebouncedValue } from '../../components';
 import type { Member } from '../../data/types';
 import { can } from '../../rules/permissions';
 import { listMembers, memberLabel, searchMembers } from '../../services/members';
@@ -42,23 +42,45 @@ export function MembersScreen() {
   const all = useLoad(listMembers, []);
   const [query, setQuery] = useState('');
   const debounced = useDebouncedValue(query, 150);
-  const search = useLoad((ctx) => searchMembers(ctx, debounced), [debounced]);
+  const search = useLoad(async (ctx) => ({ query: debounced, members: await searchMembers(ctx, debounced) }), [debounced]);
   const [editing, setEditing] = useState<Member | 'new' | null>(null);
+  const layoutRef = useRef<HTMLDivElement>(null);
+  /** The member just saved: once the lists reload, focus follows their row if it was lost (D-139). */
+  const focusAfterReload = useRef<Member | null>(null);
 
   const members = all.data;
   const active = (members ?? []).filter((m) => m.active);
   const inactive = (members ?? []).filter((m) => !m.active);
   const searching = query.trim() !== '';
-  const pending = searching && (search.loading || query.trim() !== debounced.trim());
-  const results = searching ? (search.data ?? []) : active;
+  // Results for the query in the box. A reload after a save keeps the current results on screen
+  // (the query has not changed), so the row that opened the dialog keeps focus (D-139).
+  const searched = search.data;
+  const fresh = searched !== undefined && searched.query.trim() === query.trim();
+  const pending = searching && !fresh && (search.loading || search.error === null);
+  const results = searching ? (fresh ? searched.members : []) : active;
   const isManager = session !== null && can(session.role, 'manageMembersStaffSettings');
 
-  const saved = (_member: Member, message: string): void => {
+  const saved = (member: Member, message: string): void => {
+    focusAfterReload.current = member;
     setEditing(null);
     all.reload();
     search.reload();
     toast(message, { tone: 'success' });
   };
+
+  // A (de)activated member's row moves to the other list, so the button that opened the dialog is
+  // removed and focus falls back to <main> (D-135). Once both lists have reloaded, focus the
+  // member's row where it is now. Focus the user has moved somewhere else is left alone.
+  const reloading = all.loading || search.loading;
+  useEffect(() => {
+    const member = focusAfterReload.current;
+    if (member === null || reloading) return;
+    focusAfterReload.current = null;
+    if (!isFocusLost() && document.activeElement !== document.getElementById('main')) return;
+    const label = memberLabel(member);
+    const row = [...(layoutRef.current?.querySelectorAll<HTMLButtonElement>('button[aria-label]') ?? [])].find((b) => b.getAttribute('aria-label') === label);
+    row?.focus();
+  }, [reloading]);
 
   let idleMessage: string | undefined;
   if (members === undefined) idleMessage = all.error === null ? 'Loading members…' : undefined;
@@ -78,7 +100,7 @@ export function MembersScreen() {
         </Button>
       }
     >
-      <div className={styles.layout}>
+      <div ref={layoutRef} className={styles.layout}>
         {!isManager && (
           <Banner tone="info" role="none">
             Adding or changing a member needs a manager PIN.

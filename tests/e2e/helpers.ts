@@ -259,6 +259,9 @@ export function isNarrow(page: Page): boolean {
  * container inside it may be wider than its box. Intentional sideways scrollers are exempt:
  * DataTable's scroll region (role=region) and CategoryTabs (role=tablist), or anything marked
  * data-scroll-x.
+ * The header and the in-flow manager banners (storage warning, backup reminder) sit outside <main>
+ * in the shell, which clips them (`overflow: clip`), so they never widen the page either: each must
+ * be no wider than its box, and everything in it must end inside the viewport.
  */
 export async function expectNoHorizontalScroll(page: Page): Promise<void> {
   const overflow = await page.evaluate(async () => {
@@ -284,15 +287,33 @@ export async function expectNoHorizontalScroll(page: Page): Promise<void> {
         }
       }
     }
+    const chrome: string[] = [];
+    const headers = [...document.querySelectorAll<HTMLElement>('header')].filter((h) => h.closest('main, [role="dialog"]') === null);
+    const banners = [...document.querySelectorAll<HTMLElement>('[data-testid="storage-warning"], [data-testid="backup-reminder"]')];
+    for (const el of [...headers, ...banners]) {
+      if (el.getClientRects().length === 0) continue;
+      const name = el.dataset.testid ?? el.tagName.toLowerCase();
+      if (el.scrollWidth > el.clientWidth + 1) chrome.push(`${name} is ${el.scrollWidth} px wide inside ${el.clientWidth} px`);
+      for (const child of [el, ...el.querySelectorAll<HTMLElement>('*')]) {
+        const box = child.getBoundingClientRect();
+        if (child.getClientRects().length === 0 || box.width === 0) continue;
+        if (box.left < -1 || box.right > window.innerWidth + 1) {
+          const label = `${child.tagName.toLowerCase()}${child.className === '' ? '' : `.${String(child.className).split(' ')[0]}`}`;
+          chrome.push(`in ${name}: ${label} spans ${Math.round(box.left)}..${Math.round(box.right)} in a ${window.innerWidth} px viewport`);
+        }
+      }
+    }
     return {
       page: doc.scrollWidth - doc.clientWidth,
       main: main === null ? 0 : main.scrollWidth - main.clientWidth,
       dialog: problems,
+      chrome,
     };
   });
   expect(overflow.page, 'page scrolls horizontally').toBeLessThanOrEqual(0);
   expect(overflow.main, 'main content scrolls horizontally').toBeLessThanOrEqual(0);
   expect(overflow.dialog, 'the open dialog scrolls horizontally').toEqual([]);
+  expect(overflow.chrome, 'the header or a banner is wider than the screen').toEqual([]);
 }
 
 // ---------------------------------------------------------------------------

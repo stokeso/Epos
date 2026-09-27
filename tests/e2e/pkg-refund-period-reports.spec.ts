@@ -716,3 +716,29 @@ test('forced colours (Windows High Contrast) keep the chosen Cash or Card and Re
   await expect.poll(() => chosenOptionStandsOut(refundBy)).toBe(true);
   await expect.poll(() => chosenOptionStandsOut(stock)).toBe(true);
 });
+
+test('Find sale with no receipt number moves focus to the field, which carries the message; Enter in the field announces it (WCAG 3.3.1, 4.1.3, D-139)', async ({ page }) => {
+  await freshStart(page);
+  await firstRun(page);
+  await navigate(page, 'Refunds');
+  const receipt = page.getByLabel('Receipt number', { exact: true });
+  const find = button(page, 'Find sale');
+  await find.focus();
+  await page.keyboard.press('Enter');
+  await expect(receipt).toBeFocused();
+  await expect(receipt).toHaveAttribute('aria-invalid', 'true');
+  await expect(receipt).toHaveAccessibleDescription(/Enter a receipt number/);
+  await expect(page.getByRole('alert').filter({ hasText: 'Enter a receipt number' })).toBeVisible();
+
+  // Pressed again while the message is showing: focus still goes to the field.
+  await find.focus();
+  await page.keyboard.press('Enter');
+  await expect(receipt).toBeFocused();
+
+  // Enter in the empty field keeps focus there, with the message.
+  await receipt.fill(' ');
+  await expect(receipt).not.toHaveAttribute('aria-invalid', 'true');
+  await receipt.press('Enter');
+  await expect(receipt).toBeFocused();
+  await expect(page.getByRole('alert').filter({ hasText: 'Enter a receipt number' })).toBeVisible();
+});

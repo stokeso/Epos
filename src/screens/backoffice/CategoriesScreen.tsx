@@ -76,7 +76,8 @@ export function CategoriesScreen() {
       {data === undefined && load.error === null && <p className={styles.muted}>Loading categories…</p>}
       {data !== undefined && data.categories.length === 0 && <p className={styles.empty}>No categories yet. Add the first one.</p>}
       {data !== undefined && data.categories.length > 0 && (
-        <ul className={styles.gridList} aria-label="Categories">
+        // Takes focus from script when the focused row goes (a deleted category), D-135, D-139.
+        <ul className={styles.gridList} aria-label="Categories" tabIndex={-1}>
           {data.categories.map((category) => (
             <li key={category.id}>
               <CategoryRow category={category} productCount={countFor(category.id)} onEdit={() => setDraft({ id: category.id, values: { name: category.name, sortOrder: category.sortOrder, colour: category.colour } })} />

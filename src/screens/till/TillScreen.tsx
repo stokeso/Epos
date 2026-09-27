@@ -338,13 +338,15 @@ export function TillScreen() {
             open={sheetOpen}
             onOpenChange={setSheetOpen}
             summary={<SheetSummary view={view} unitCount={unitCount} totalPence={stale ? null : totalPence} />}
+            // The bar is 72 px tall and keeps the product grid its space, so its Pay is 56 px (lg);
+            // the open sheet's footer Pay is the plan's 72 px (xl), D-139.
             barActions={
               <Button variant="primary" size="lg" onClick={() => void pay()} busy={busy === 'pay'} disabled={payDisabled} className={styles.barPay}>
                 Pay
               </Button>
             }
             footer={
-              <Button variant="primary" size="lg" block onClick={() => void pay()} busy={busy === 'pay'} disabled={payDisabled}>
+              <Button variant="primary" size="xl" block onClick={() => void pay()} busy={busy === 'pay'} disabled={payDisabled}>
                 Pay{stale ? '' : ' '}
                 {!stale && <span className="tabular">{formatPence(totalPence)}</span>}
               </Button>

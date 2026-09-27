@@ -97,7 +97,14 @@
 .label {
   font-size: var(--font-size-xl);
   line-height: 1.15;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+}
+
+/* Three narrower cards: a long surname ('Featherstonehaugh') still fits on one line (D-139). */
+@media (min-width: 1100px) {
+  .label {
+    font-size: var(--font-size-lg);
+  }
 }
 
 .meta {

@@ -2,7 +2,7 @@
 
 **Status:** binding. Read `docs/design-spec.md` first, then `docs/decisions.md` (D-nnn). This file maps both onto modules, contracts and owners.
 
-The contracts already exist in code as types and stubs. Every stub throws `Not implemented: <name>`, and its JSDoc gives the inputs, outputs and the decisions it implements:
+The contracts exist in code as types and implemented functions (they began as stubs that threw `Not implemented: <name>`; none remain). Each function's JSDoc gives the inputs, outputs and the decisions it implements:
 
 - `src/data/types.ts`, `src/data/repos.ts`, `src/data/errors.ts`
 - `src/rules/*.ts`
@@ -10,7 +10,7 @@ The contracts already exist in code as types and stubs. Every stub throws `Not i
 - `src/receipt/index.ts`, `src/seed/index.ts`
 - `tests/data/contract.ts`
 
-Builders implement the stub bodies without changing signatures. Amend a signature only when unavoidable, keep the change minimal, and note it in the station summary.
+Keep these signatures stable. Amend a signature only when unavoidable, keep the change minimal, and note it in the station summary.
 
 ---
 
@@ -151,7 +151,7 @@ Build order. The rules and data stations can work in parallel. Services, receipt
 |---|---|---|
 | `tests/rules/*.test.ts` | rules builder | Test-first worked examples: every numeric example in decisions.md, and the permission matrix (§10.1) |
 | `tests/data/contract.ts` | data builder | `runRepositoryContract(name, makeStore, deleteDatabase?)` (D-115) |
-| `tests/data/*.test.ts` | data builder | e.g. `local.contract.test.ts` runs the suite on the LocalAdapter; `pin.test.ts`; `backup-validation.test.ts` |
+| `tests/data/*.test.ts` | data builder | `local-adapter.test.ts` runs the suite on the LocalAdapter; `pin.test.ts`; `backup-validation.test.ts` |
 | `tests/data/services/*.test.ts` | services builder | Use cases against the LocalAdapter under fake-indexeddb with a fixed clock and sequential ids. Includes the D-042 period end to end. |
 | `tests/data/seed*.test.ts` | receipt & seed builder | Counts, the catalogue matches D-097, opening stock, PINs verify |
 | `tests/unit/receipt*.test.ts` | receipt & seed builder | `itemRows` sums, escaping, CSP meta, D-107 examples |
@@ -324,7 +324,7 @@ Implementation notes for the data builder:
 
 ---
 
-## 7. UI plan (for the later UI workflow)
+## 7. UI plan (summary; `docs/ui-plan.md` is the detailed reference)
 
 ### 7.1 Routes (`createHashRouter`: works offline and needs no server fallback)
 
@@ -332,7 +332,7 @@ Implementation notes for the data builder:
 |---|---|---|
 | `#/setup` | `SetupScreen` | only while `getBootState` = 'setup' |
 | `#/login` | `LoginScreen` | PIN keypad; lockout countdown |
-| `#/till` | `TillScreen` | category tabs, product grid, basket panel (landscape) / bottom sheet (portrait), action bar: Member, Tab, Booking, Void, No sale, Pay, Lock, Menu; "No trading period open" + Open period |
+| `#/till` | `TillScreen` | category tabs, product grid, basket panel (landscape) / bottom sheet (portrait), action bar: Member, Tab, Booking, Void, No sale; Pay under the basket total (Lock and Menu are in the shell header); "No trading period open" + Open period |
 | `#/pay` | `PayScreen` | amount due, remaining, tenders list, quick cash, Exact, keypad, Cash, Card, Cancel payment / Back to basket, Complete sale (total 0) |
 | `#/tabs` | `TabsScreen` | open tabs with total and time open; Load, Settle |
 | `#/bookings`, `#/bookings/:id` | `BookingsScreen`, `BookingDetailScreen` | create/edit, take deposit, mark settled, cancel |
@@ -353,11 +353,11 @@ Guards: no Settings/staff → `#/setup`; no session → `#/login`; after login �
 | `sessionStore` | `session: Session \| null`, `pinAttempts: PinAttemptState`, `lastActivityMs`, dismissed banners | never persisted |
 | `basketStore` | `basket: BasketState`, `view: BasketView \| null`, `pricing` flag | every change → `viewBasket` + `saveDraft`; survives lock |
 | `payStore` | `session: PaySession \| null`, `keypadPence`, `committing`, `error` | survives lock; cleared on complete or cancel |
-| `uiStore` | toasts, `receiptFallbackHtml`, pending override request (resolver), confirm dialogs | override dialog is cancelled on lock |
+| `uiStore` | toasts, `receiptFallback`, pending override request (resolver), confirm dialogs | override dialog is cancelled on lock |
 
 ### 7.3 App shell and shared components
 - `src/app/`:
-  - `App.tsx`: router and shell. Do not rename `App` or change `main.tsx` without the UI station.
+  - `App.tsx`: router (the shell is `AppShell.tsx`). Do not rename `App` or change `main.tsx` without the UI station.
   - `bootstrap.ts`: adapter + context.
   - `clock.ts`: `nowIso`/`nowMs` via `Date.now()`.
   - `useAutoLock.ts`.

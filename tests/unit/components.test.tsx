@@ -321,6 +321,46 @@ describe('Modal', () => {
     expect((opener as HTMLButtonElement).disabled).toBe(true);
     expect(document.activeElement).toBe(document.getElementById('main'));
   });
+
+  it("gives focus to the opener's container, not <body>, when the screen's reload after a save removes the opener (D-135, D-139)", async () => {
+    function ListHarness() {
+      const [open, setOpen] = useState(false);
+      const [rows, setRows] = useState(['Bar', 'Temp']);
+      return (
+        <main id="main" tabIndex={-1}>
+          <ul aria-label="Categories" tabIndex={-1}>
+            {rows.map((row) => (
+              <li key={row}>
+                <button type="button" onClick={() => setOpen(true)}>
+                  {`Edit ${row}`}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <Modal open={open} onClose={() => setOpen(false)} title="Edit category">
+            <button
+              type="button"
+              onClick={() => {
+                // The dialog closes first; the list reloads a moment later without the row.
+                setOpen(false);
+                setTimeout(() => setRows(['Bar']), 20);
+              }}
+            >
+              Delete category
+            </button>
+          </Modal>
+        </main>
+      );
+    }
+    render(<ListHarness />);
+    const opener = key('Edit Temp');
+    opener.focus();
+    fireEvent.click(opener);
+    fireEvent.click(screen.getByRole('button', { name: 'Delete category' }));
+    expect(document.activeElement).toBe(opener);
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Edit Temp' })).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('list', { name: 'Categories' })));
+  });
 });
 
 describe('keepFocusWhenRemoved (D-135)', () => {

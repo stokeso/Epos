@@ -544,3 +544,49 @@ test('keyboard focus: Mark settled and Cancel booking go with the closed booking
     await expect.poll(focused, { message: `${action}: focus fell to <body>` }).toBe('main#main');
   }
 });
+
+// ---------------------------------------------------------------------------
+// Regressions: saving a member keeps keyboard focus on the member's row (D-135, D-139)
+// ---------------------------------------------------------------------------
+
+test('keyboard focus: saving a member keeps focus on the member’s row, in its new list after (de)activating, never on <body> (D-135, D-139)', async ({ page }) => {
+  await freshStart(page);
+  await firstRun(page);
+  await navigate(page, 'Members');
+  await expectHeading(page, 'Members');
+  const active = page.getByRole('list', { name: 'Active members', exact: true });
+  const inactive = page.getByRole('list', { name: 'Inactive members', exact: true });
+  const editDialog = page.getByRole('dialog', { name: 'Edit member' });
+
+  // Deactivate from the keyboard: the row moves to Inactive members and focus goes with it.
+  await button(active, '1001 — Alice Archer').focus();
+  await page.keyboard.press('Enter');
+  await button(editDialog, 'Deactivate member').focus();
+  await page.keyboard.press('Enter');
+  const confirm = page.getByRole('dialog', { name: 'Deactivate this member?' });
+  await button(confirm, 'Deactivate').focus();
+  await page.keyboard.press('Enter');
+  await expect(editDialog).toBeHidden();
+  await expect(page.getByTestId('toast').filter({ hasText: '1001 — Alice Archer deactivated' })).toBeVisible();
+  await expect(button(active, '1001 — Alice Archer')).toHaveCount(0);
+  await expect(button(inactive, '1001 — Alice Archer')).toBeFocused();
+
+  // Reactivate: back to Active members, still focused.
+  await page.keyboard.press('Enter');
+  await button(editDialog, 'Reactivate member').focus();
+  await page.keyboard.press('Enter');
+  await expect(editDialog).toBeHidden();
+  await expect(inactive).toHaveCount(0);
+  await expect(button(active, '1001 — Alice Archer')).toBeFocused();
+
+  // A member found by a search: the results stay on screen while they reload, so focus stays on
+  // the row (which shows the new name), not on <main>.
+  const results = await memberSearch(page, 'arch');
+  await button(results, '1001 — Alice Archer').focus();
+  await page.keyboard.press('Enter');
+  await editDialog.getByLabel('First name').fill('Alicia');
+  await button(editDialog, 'Save member').focus();
+  await page.keyboard.press('Enter');
+  await expect(editDialog).toBeHidden();
+  await expect(button(results, '1001 — Alicia Archer')).toBeFocused();
+});
