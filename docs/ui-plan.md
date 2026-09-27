@@ -77,7 +77,7 @@ All are accessible (real `<button>`s with names, labelled groups/dialogs), touch
 `open`, `title`, `message?`, `confirmLabel?` (`Confirm`), `cancelLabel?` (`Cancel`), `tone?: 'default' | 'danger'`, `busy?`, `onConfirm`, `onCancel`, `children?` (e.g. an error Banner), `testId?`. For a one-off question without local state use `await confirmDialog({ title, message, confirmLabel, cancelLabel, tone })` from `src/store` (resolves `false` on cancel or lock).
 
 ### Toast / Toaster
-Show with `toast(message, { tone?: 'info' | 'success' | 'warning' | 'danger', durationMs? })` from `src/store`. The root renders them (top centre, `pointer-events: none`, so they never block a tap; `data-testid="toast"`; at most three; cleared on lock). Use for confirmations such as `Drawer opened`; use a `Banner` for anything the user must read or act on.
+Show with `toast(message, { tone?: 'info' | 'success' | 'warning' | 'danger', durationMs? })` from `src/store`. The root renders them (top centre, `pointer-events: none`, so they never block a tap; `data-testid="toast"`; one confirmation at a time, the newest replacing the last, for 2.5 s; errors up to two for 6 s (D-140); cleared on lock). Use for confirmations such as `Drawer opened`; use a `Banner` for anything the user must read or act on.
 
 ### Banner
 `tone?: 'info' | 'success' | 'warning' | 'danger'`, `title?` (bold lead-in), `children`, `action?` (buttons/links), `onDismiss?` + `dismissLabel?` (default `Dismiss`), `role?: 'alert' | 'status' | 'none'` (default alert for danger), `testId?`. In flow: it takes space and never overlays buttons.

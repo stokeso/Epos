@@ -156,7 +156,10 @@ export function BasketPanel({
             ))}
           </ul>
         )}
+      </div>
 
+      <div className={styles.footer}>
+        {/* Discounts stay in the fixed footer beside the total they explain, never scrolled out of view. */}
         {priced !== undefined && (priced.dealLines.length > 0 || memberAttached || priced.depositAppliedPence > 0) && (
           <ul className={styles.adjustments} aria-label="Discounts and deposits">
             {priced.dealLines.map((deal) => (
@@ -182,9 +185,6 @@ export function BasketPanel({
             )}
           </ul>
         )}
-      </div>
-
-      <div className={styles.footer}>
         <div className={styles.totalRow}>
           <span className={styles.totalLabel}>Total</span>
           {stale ? (

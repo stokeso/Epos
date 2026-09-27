@@ -219,7 +219,7 @@ h2 { font-size: 12px; font-weight: bold; margin: 0 0 1mm; text-transform: upperc
 .heading { font-size: 14px; font-weight: bold; letter-spacing: 0.1em; margin: 1mm 0; }
 .rule { border: 0; border-top: 1px dashed #000; margin: 2mm 0; }
 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 3mm; }
-.label { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.label { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; text-wrap: pretty; padding-left: 2ch; text-indent: -2ch; }
 .amount { flex: 0 0 auto; text-align: right; white-space: nowrap; }
 .total { font-size: 14px; font-weight: bold; margin: 1mm 0; }
 .strong { font-weight: bold; }

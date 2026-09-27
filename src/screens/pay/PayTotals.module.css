@@ -20,6 +20,24 @@
   color: var(--color-on-brand);
 }
 
+/* Phones: the balance pinned under the header while the hero is scrolled away (D-140). */
+.pinned {
+  position: fixed;
+  top: var(--header-height);
+  right: 0;
+  left: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-brand-900);
+  color: var(--color-on-brand);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+
 .heroSettled {
   background: var(--color-brand-800);
 }

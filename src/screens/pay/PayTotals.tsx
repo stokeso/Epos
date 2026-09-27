@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { MoneyText } from '../../components';
 import { formatPence } from '../../rules/money';
 import type { TenderState } from '../../rules/tender';
@@ -35,9 +35,27 @@ export function PayTotals({ tender, dueLabel, compact = false }: PayTotalsProps)
   // The hero figure shrinks with its length so every digit stays inside the card (e.g. £1,040.00
   // on a 390 px phone, six-figure bills on the tablet); see .heroAmount.
   const heroStyle = { '--hero-chars': formatPence(tender.remainingPence).length } as CSSProperties;
+  // Phones: the keypad sits below the fold, so once the hero scrolls half away the balance is
+  // pinned under the header (D-140).
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroAway, setHeroAway] = useState(false);
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!compact || hero === null || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => setHeroAway(entry !== undefined && entry.intersectionRatio < 0.5), { threshold: [0, 0.5, 1] });
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, [compact]);
   return (
     <section className={styles.totals} aria-label="Payment summary">
-      <div className={`${styles.hero} ${settled ? styles.heroSettled : ''}`} style={heroStyle}>
+      {compact && heroAway && (
+        // A visual copy only: screen readers already have the hero figure.
+        <div className={styles.pinned} aria-hidden="true" data-testid="remaining-pinned">
+          <span className={styles.heroLabel}>Remaining</span>
+          <MoneyText pence={tender.remainingPence} size="xl" strong />
+        </div>
+      )}
+      <div ref={heroRef} className={`${styles.hero} ${settled ? styles.heroSettled : ''}`} style={heroStyle}>
         <span className={styles.heroLabel}>Remaining</span>
         <MoneyText pence={tender.remainingPence} size="3xl" strong testId="remaining" className={styles.heroAmount} />
       </div>

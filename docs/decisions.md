@@ -1397,3 +1397,12 @@ How to use this file:
     - On a phone, the open basket sheet's Pay is 72 px (`size="xl"`), as the plan sets for Pay. The basket bar's Pay stays 56 px (`lg`) by design: the bar is 72 px tall, and a taller bar would take room from the product grid.
   - **Tests:** the horizontal-scroll check also covers the header and the manager banners, which the shell clips (`overflow: clip`), so they could never widen the page. An e2e test sells a product whose stock is below zero: the till does not block it, and the low-stock list then shows the new figure (D-082).
 - **Why:** Keyboard and screen-reader users lost their place after routine back-office saves, and a refused refund search gave them no feedback. The layout fixes stop a split surname, a hidden stock column and a smaller Pay button on phones than the plan sets.
+
+### D-140 Key figures stay in view: basket discounts, the Pay balance, toasts and receipt lines
+- **Spec:** §6.3, §6.4, §6.10, §10.4; refines D-107, D-134 and the toast rules in docs/ui-plan.md §3.
+- **Decision:**
+  - **Basket discounts sit in the fixed footer:** the deal lines, member discount and deposit applied are listed above the Total in the basket's footer, not at the end of the scrolling line list. Only the item lines scroll. A basket with five or more lines no longer hides its discounts on the tablet.
+  - **Pay balance pinned on phones:** under 900 px, once the Remaining figure is half scrolled out of view (the keypad is below the fold), a slim strip under the header shows "Remaining £x.xx". It is a visual copy (`aria-hidden`, `data-testid="remaining-pinned"`), takes no taps, and leaves the page layout unchanged.
+  - **Toasts:** one confirmation at a time. A new info, success or warning toast replaces the one showing, and it lasts 2.5 s (was 4 s, up to three stacked). Errors (`danger`) keep up to two for 6 s. They still sit top centre and never take taps.
+  - **Receipt item lines:** a long label wraps with a hanging indent, and never strands its last word (such as the unit price) on a line of its own (`text-wrap: pretty`). The text is unchanged.
+- **Why:** Staff read the discounts and the balance to the customer, so neither should need a scroll to find. Stacked toasts covered the category tabs on a phone for several seconds.

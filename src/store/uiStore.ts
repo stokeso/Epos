@@ -20,7 +20,7 @@ export interface ToastItem {
 
 export interface ToastOptions {
   tone?: ToastTone;
-  /** Default 4000 ms (6000 ms for 'danger'). */
+  /** Default 2500 ms (6000 ms for 'danger'). */
   durationMs?: number;
 }
 
@@ -93,9 +93,16 @@ export const useUiStore = create<UiState>()((set, get) => ({
   toast(message, options = {}) {
     const id = nextId++;
     const tone = options.tone ?? 'info';
-    const durationMs = options.durationMs ?? (tone === 'danger' ? 6000 : 4000);
-    // Keep at most 3 on screen; the newest goes last.
-    set({ toasts: [...get().toasts.slice(-2), { id, message, tone }] });
+    const durationMs = options.durationMs ?? (tone === 'danger' ? 6000 : 2500);
+    // One confirmation at a time: the newest replaces the last, so toasts never stack over the
+    // page. Errors keep up to two, since each may need reading (D-140).
+    const current = get().toasts;
+    const replaced = tone === 'danger' ? current.filter((t) => t.tone === 'danger').slice(0, -1) : current.filter((t) => t.tone !== 'danger');
+    for (const old of replaced) {
+      clearTimeout(timers.get(old.id));
+      timers.delete(old.id);
+    }
+    set({ toasts: [...current.filter((t) => !replaced.includes(t)), { id, message, tone }] });
     timers.set(
       id,
       setTimeout(() => get().dismissToast(id), durationMs),

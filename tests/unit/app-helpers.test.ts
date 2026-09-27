@@ -50,9 +50,12 @@ describe('requirePermission', () => {
 });
 
 describe('uiStore', () => {
-  it('keeps at most three toasts and clears them', () => {
-    for (const message of ['one', 'two', 'three', 'four']) toast(message);
-    expect(useUiStore.getState().toasts.map((t) => t.message)).toEqual(['two', 'three', 'four']);
+  it('shows one confirmation at a time and up to two errors, and clears them (D-140)', () => {
+    for (const message of ['one', 'two', 'three']) toast(message);
+    expect(useUiStore.getState().toasts.map((t) => t.message)).toEqual(['three']);
+    for (const message of ['e1', 'e2', 'e3']) toast(message, { tone: 'danger' });
+    toast('four', { tone: 'success' });
+    expect(useUiStore.getState().toasts.map((t) => t.message)).toEqual(['e2', 'e3', 'four']);
     useUiStore.getState().clearToasts();
     expect(useUiStore.getState().toasts).toEqual([]);
   });
